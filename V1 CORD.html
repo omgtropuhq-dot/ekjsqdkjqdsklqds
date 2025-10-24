@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Omertacord V3</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; font-family: monospace; background: #0d0d0d; color: #f2f2f2; overflow: hidden; }
+    body { display: flex; height: 100vh; overflow: hidden; }
+    #sidebar {
+      width: 240px; background: #111; border-right: 1px solid #333;
+      display: flex; flex-direction: column; padding: 10px; overflow-y: auto;
+    }
+    #sidebar button, #sidebar input {
+      margin-bottom: 6px; border-radius: 4px; border: none; background: #1a1a1a;
+      color: #ccc; font-size: 13px; padding: 6px 8px; width: 100%;
+    }
+    #sidebar button { background: #333; cursor: pointer; color: white; }
+    #sidebar button:hover { background: #555; }
+ 
+.group {
+  font-weight: bold;
+  margin-top: 100px;   /* gros espace au-dessus */
+  padding-top: 10px;  /* espace interne */
+  position: relative;
+  color: #888;
+  user-select: none;
+}
+
+.group::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;        /* trait sur toute la largeur */
+  height: 1px;
+  background: #333;
+}
+
+#sidebar .group:first-of-type {
+  margin-top: 12px; /* plus proche des boutons */
+}
+
+ ul { list-style: none; padding: 0; margin-top: 10px; }
+    li { padding: 6px 8px; cursor: pointer; border-radius: 3px; color: #ccc; }
+    li:hover { background: #222; color: #61dafb; }
+    #mainContainer { flex: 1; display: flex; flex-direction: column; height: 100vh; }
+    #chatHeader { background: #222; padding: 10px; font-weight: bold; }
+    #chat { flex: 1; background: #1a1a1a; padding: 10px; overflow-y: auto; }
+    .message { margin-bottom: 8px; font-size: 14px; }
+    .username { color: #61dafb; font-size: 13px; font-weight: 600; margin-right: 4px; }
+    #inputBox { background: #111; padding: 10px; display: flex; flex-direction: column; }
+    #mentions, #message {
+      background: #1a1a1a; color: white; border: none; border-radius: 4px;
+      padding: 8px; margin-bottom: 6px; resize: none; font-size: 14px;
+    }
+    #message { height: 60px; }
+    #authOverlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: #0d0d0d; color: white;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      z-index: 9999;
+    }
+    #authOverlay h1 { font-size: 42px; margin-bottom: 30px; }
+    #authOverlay .inputRow { display: flex; gap: 6px; }
+    #authOverlay input {
+      padding: 6px 10px; font-size: 14px; text-align: center;
+      border: none; border-radius: 4px; background: #1a1a1a; color: white; width: 160px;
+    }
+    #authOverlay button {
+      font-size: 16px; background: #333; color: white; border: none; border-radius: 4px;
+      padding: 6px 10px; cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <!-- Overlay mot de passe au lancement -->
+  <div id="authOverlay">
+    <h1>/pvomerta</h1>
+    <div class="inputRow">
+      <input type="password" id="passwordInput" placeholder="Mot de passe..." onkeydown="if(event.key==='Enter') checkPassword()" />
+      <button onclick="checkPassword()">→</button>
+    </div>
+    <p id="errorText" style="color:red; margin-top:8px;"></p>
+  </div>
+
+  <div id="sidebar" style="display:none;">
+    <button id="toggleControlsBtn" onclick="toggleToken()">Afficher le token</button>
+    <input id="token" type="text" placeholder="Token Discord" oninput="connect()"/>
+    <button onclick="loadGuilds()">Serveurs</button>
+    <button onclick="loadDMs()">DMs / Groupes</button>
+    <div class="group">Serveurs</div><ul id="guildList"></ul>
+    <div class="group">DMs & Groupes</div><ul id="dmList"></ul>
+    <div class="group">Salons</div><ul id="channelList"></ul>
+  </div>
+
+  <main id="mainContainer" style="display:none;">
+    <header id="chatHeader"><span id="chatTitle">Aucune conversation</span></header>
+    <section id="chat"></section>
+    <footer id="inputBox">
+      <input id="mentions" type="text" placeholder="Mentions automatiques (@everyone <@id>)" />
+      <textarea id="message" placeholder="Message..."></textarea>
+    </footer>
+  </main>
+
+  <script>
+    let token='', currentChannelId=null, socket=null, userId=null;
+
+    // Vérification mot de passe
+    function checkPassword() {
+      const input=document.getElementById('passwordInput').value.trim();
+      if(input==='nada91@'){
+        document.getElementById('authOverlay').style.display='none';
+        document.getElementById('sidebar').style.display='flex';
+        document.getElementById('mainContainer').style.display='flex';
+      } else {
+        document.getElementById('errorText').textContent='Mot de passe incorrect.';
+      }
+    }
+
+    // Subterfuge bouton token
+    function toggleToken() {
+      const tokenInput=document.getElementById("token");
+      const btn=document.getElementById("toggleControlsBtn");
+      if(tokenInput){
+        tokenInput.remove();
+        btn.textContent="Afficher le token";
+      } else {
+        const newInput=document.createElement("input");
+        newInput.id="token"; newInput.type="text"; newInput.placeholder="Token Discord"; newInput.oninput=connect;
+        newInput.style.marginBottom="6px";
+        btn.insertAdjacentElement("afterend", newInput);
+        btn.textContent="Cacher le token";
+      }
+    }
+
+    document.getElementById('message').addEventListener('keydown', e=>{
+      if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessageHard();}
+    });
+
+    async function connect(){
+      const el=document.getElementById('token'); if(!el)return;
+      token=el.value; if(!token)return;
+      const user=await fetch('https://discord.com/api/v9/users/@me',{headers:{Authorization:token}}).then(r=>r.json());
+      userId=user.id;
+      if(socket)socket.close();
+      socket=new WebSocket('wss://gateway.discord.gg/?v=9&encoding=json');
+      socket.onopen=()=>socket.send(JSON.stringify({op:2,d:{token,intents:32767,properties:{os:'linux',browser:'omertacord',device:'omertacord'}}}));
+      socket.onmessage=({data})=>{
+        const p=JSON.parse(data);
+        if(p.t==='MESSAGE_CREATE'){const m=p.d;if(m.channel_id===currentChannelId&&m.author.id!==userId)appendMessage(m.author.username,m.content);}
+      };
+    }
+
+    async function loadGuilds(){
+      const guilds=await fetch('https://discord.com/api/v9/users/@me/guilds',{headers:{Authorization:token}}).then(r=>r.json());
+      const ul=document.getElementById('guildList'); ul.innerHTML=''; document.getElementById('channelList').innerHTML='';
+      guilds.forEach(g=>{const li=document.createElement('li'); li.textContent=g.name; li.onclick=()=>loadChannels(g.id,g.name); ul.appendChild(li);});
+    }
+
+    async function loadChannels(guildId,guildName){
+      const channels=await fetch(`https://discord.com/api/v9/guilds/${guildId}/channels`,{headers:{Authorization:token}}).then(r=>r.json());
+      const ul=document.getElementById('channelList'); ul.innerHTML='';
+      channels.filter(c=>c.type===0).forEach(c=>{const li=document.createElement('li'); li.textContent=`#${c.name}`; li.onclick=()=>openChannel(c.id,`${guildName} / #${c.name}`); ul.appendChild(li);});
+    }
+
+    async function loadDMs(){
+      const dms=await fetch('https://discord.com/api/v9/users/@me/channels',{headers:{Authorization:token}}).then(r=>r.json());
+      const ul=document.getElementById('dmList'); ul.innerHTML='';
+      dms.forEach(dm=>{const name=dm.recipients?.map(u=>u.username).join(', ')||dm.name||'Groupe'; const li=document.createElement('li'); li.textContent=name; li.onclick=()=>openChannel(dm.id,name); ul.appendChild(li);});
+    }
+
+    function openChannel(id,label){currentChannelId=id; document.getElementById('chatTitle').textContent=label; loadMessages();}
+
+    async function loadMessages(){
+      const msgs=await fetch(`https://discord.com/api/v9/channels/${currentChannelId}/messages?limit=20`,{headers:{Authorization:token}}).then(r=>r.json());
+      const chat=document.getElementById('chat'); chat.innerHTML=''; msgs.reverse().forEach(m=>appendMessage(m.author.username,m.content));
+    }
+
+    function appendMessage(a,c){const chat=document.getElementById('chat'); const d=document.createElement('div'); d.className='message'; d.innerHTML=`<span class='username'>${a}:</span> ${c}`; chat.appendChild(d); chat.scrollTop=chat.scrollHeight;}
+
+    function sendMessageHard(){
+      const message=document.getElementById('message'), mentions=document.getElementById('mentions').value.trim();
+      if(!currentChannelId||!token||!message.value.trim())return;
+      const content=message.value.trim()+(mentions?' '+mentions:''); message.value='';
+      appendMessage('Vous',content);
+      const xhr=new XMLHttpRequest(); xhr.open('POST',`https://discord.com/api/v9/channels/${currentChannelId}/messages`,true);
+      xhr.setRequestHeader('Authorization',token); xhr.setRequestHeader('Content-Type','application/json');
+      xhr.send(JSON.stringify({content}));
+    }
+  </script>
+</body>
+</html>
