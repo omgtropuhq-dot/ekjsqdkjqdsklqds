@@ -1,195 +1,763 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Rich Cord</title>
-  <style>
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { height: 100%; font-family: monospace; background: #0d0d0d; color: #f2f2f2; overflow: hidden; }
-    body { display: flex; height: 100vh; overflow: hidden; }
-    #sidebar {
-      width: 240px; background: #111; border-right: 1px solid #333;
-      display: flex; flex-direction: column; padding: 10px; overflow-y: auto;
-    }
-    #sidebar button, #sidebar input {
-      margin-bottom: 6px; border-radius: 4px; border: none; background: #1a1a1a;
-      color: #ccc; font-size: 13px; padding: 6px 8px; width: 100%;
-    }
-    #sidebar button { background: #333; cursor: pointer; color: white; }
-    #sidebar button:hover { background: #555; }
- 
-.group {
-  font-weight: bold;
-  margin-top: 100px;   /* gros espace au-dessus */
-  padding-top: 10px;  /* espace interne */
-  position: relative;
-  color: #888;
-  user-select: none;
-}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Telegram Contact Manager Pro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-.group::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;        /* trait sur toute la largeur */
-  height: 1px;
-  background: #333;
-}
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
 
-#sidebar .group:first-of-type {
-  margin-top: 12px; /* plus proche des boutons */
-}
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
 
- ul { list-style: none; padding: 0; margin-top: 10px; }
-    li { padding: 6px 8px; cursor: pointer; border-radius: 3px; color: #ccc; }
-    li:hover { background: #222; color: #61dafb; }
-    #mainContainer { flex: 1; display: flex; flex-direction: column; height: 100vh; }
-    #chatHeader { background: #222; padding: 10px; font-weight: bold; }
-    #chat { flex: 1; background: #1a1a1a; padding: 10px; overflow-y: auto; }
-    .message { margin-bottom: 8px; font-size: 14px; }
-    .username { color: #61dafb; font-size: 13px; font-weight: 600; margin-right: 4px; }
-    #inputBox { background: #111; padding: 10px; display: flex; flex-direction: column; }
-    #mentions, #message {
-      background: #1a1a1a; color: white; border: none; border-radius: 4px;
-      padding: 8px; margin-bottom: 6px; resize: none; font-size: 14px;
-    }
-    #message { height: 60px; }
-    #authOverlay {
-      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-      background: #0d0d0d; color: white;
-      display: flex; flex-direction: column; align-items: center; justify-content: center;
-      z-index: 9999;
-    }
-    #authOverlay h1 { font-size: 42px; margin-bottom: 30px; }
-    #authOverlay .inputRow { display: flex; gap: 6px; }
-    #authOverlay input {
-      padding: 6px 10px; font-size: 14px; text-align: center;
-      border: none; border-radius: 4px; background: #1a1a1a; color: white; width: 160px;
-    }
-    #authOverlay button {
-      font-size: 16px; background: #333; color: white; border: none; border-radius: 4px;
-      padding: 6px 10px; cursor: pointer;
-    }
-  </style>
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 25px;
+            background: #f8f9fa;
+            border-radius: 15px;
+            border-left: 5px solid #667eea;
+        }
+
+        .section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+
+        .accounts-list {
+            display: grid;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .account-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.3s;
+        }
+
+        .account-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .account-card.selected {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .account-info {
+            flex: 1;
+        }
+
+        .account-name {
+            font-weight: bold;
+            font-size: 1.1em;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .account-details {
+            color: #666;
+            font-size: 0.9em;
+        }
+
+        .account-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s;
+            font-size: 0.95em;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group input, .form-group select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border 0.3s;
+        }
+
+        .form-group input:focus, .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .modal-header {
+            margin-bottom: 20px;
+        }
+
+        .modal-header h3 {
+            color: #667eea;
+            font-size: 1.5em;
+        }
+
+        .close-modal {
+            float: right;
+            font-size: 1.5em;
+            cursor: pointer;
+            color: #999;
+        }
+
+        .close-modal:hover {
+            color: #333;
+        }
+
+        .progress-container {
+            background: #f0f0f0;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 30px;
+            background: #e0e0e0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .log-container {
+            background: #1e1e1e;
+            color: #0f0;
+            padding: 20px;
+            border-radius: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        .log-entry {
+            margin-bottom: 5px;
+            padding: 5px;
+        }
+
+        .log-success { color: #0f0; }
+        .log-error { color: #f00; }
+        .log-warning { color: #ff0; }
+        .log-info { color: #0ff; }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border-left: 4px solid #17a2b8;
+        }
+
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border-left: 4px solid #ffc107;
+        }
+
+        .channel-item {
+            padding: 15px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 2px solid #e0e0e0;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .channel-item:hover {
+            border-color: #667eea;
+            box-shadow: 0 3px 10px rgba(102, 126, 234, 0.2);
+        }
+
+        .channel-item.selected {
+            border-color: #667eea;
+            background: #f0f4ff;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            border: 2px solid #e0e0e0;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            margin-top: 5px;
+        }
+    </style>
 </head>
 <body>
-  <!-- Overlay mot de passe au lancement -->
-  <div id="authOverlay">
-    <h1>@xxxxrich</h1>
-    <div class="inputRow">
-      <input type="password" id="passwordInput" placeholder="Mot de passe..." onkeydown="if(event.key==='Enter') checkPassword()" />
-      <button onclick="checkPassword()">→</button>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Telegram Contact Manager Pro</h1>
+            <p>Gestionnaire multi-comptes ultra-sécurisé</p>
+        </div>
+
+        <div class="content">
+            <!-- Section 1: Gestion des comptes -->
+            <div class="section">
+                <h2>📱 Mes Comptes Telegram</h2>
+                <div class="accounts-list" id="accountsList">
+                    <div style="text-align: center; color: #999; padding: 40px;">
+                        Aucun compte ajouté. Cliquez sur "Ajouter un compte" pour commencer.
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="openAddAccountModal()">➕ Ajouter un compte</button>
+            </div>
+
+            <!-- Section 2: Sélection du canal source -->
+            <div class="section">
+                <h2>📂 Choisir le Canal Source</h2>
+                <div class="alert alert-info">
+                    ℹ️ Sélectionnez d'abord un compte ci-dessus, puis choisissez le canal dont vous voulez extraire les contacts.
+                </div>
+                <div id="sourceChannelsList">
+                    <p style="color: #999;">Sélectionnez un compte pour voir ses canaux...</p>
+                </div>
+            </div>
+
+            <!-- Section 3: Configuration de l'ajout -->
+            <div class="section">
+                <h2>⚙️ Configuration de l'Ajout</h2>
+                
+                <div class="form-group">
+                    <label>Compte destinataire (qui va recevoir les contacts)</label>
+                    <select id="targetAccount">
+                        <option value="">-- Sélectionnez un compte --</option>
+                    </select>
+                </div>
+
+                <div class="settings-grid">
+                    <div class="form-group">
+                        <label>Délai minimum (secondes)</label>
+                        <input type="number" id="minDelay" value="45" min="30">
+                    </div>
+                    <div class="form-group">
+                        <label>Délai maximum (secondes)</label>
+                        <input type="number" id="maxDelay" value="90" min="45">
+                    </div>
+                    <div class="form-group">
+                        <label>Batch size</label>
+                        <input type="number" id="batchSize" value="20" min="10" max="50">
+                    </div>
+                    <div class="form-group">
+                        <label>Pause longue (minutes)</label>
+                        <input type="number" id="longPause" value="5" min="3" max="15">
+                    </div>
+                </div>
+
+                <div class="alert alert-warning">
+                    ⚠️ <strong>Mode sécurisé activé :</strong> Les paramètres sont optimisés pour éviter les bans. Ne les modifiez que si vous savez ce que vous faites !
+                </div>
+
+                <button class="btn btn-success" onclick="startProcess()" style="width: 100%; padding: 15px; font-size: 1.1em;">
+                    🚀 Démarrer l'Ajout de Contacts
+                </button>
+            </div>
+
+            <!-- Section 4: Progression -->
+            <div class="section" id="progressSection" style="display: none;">
+                <h2>📊 Progression en Temps Réel</h2>
+                
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="statAdded">0</div>
+                        <div class="stat-label">Ajoutés</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="statFailed">0</div>
+                        <div class="stat-label">Échecs</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="statRemaining">0</div>
+                        <div class="stat-label">Restants</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="statTime">0:00</div>
+                        <div class="stat-label">Temps écoulé</div>
+                    </div>
+                </div>
+
+                <div class="progress-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill" style="width: 0%;">0%</div>
+                    </div>
+                    <p style="text-align: center; color: #666;" id="progressText">En attente...</p>
+                </div>
+
+                <div class="log-container" id="logContainer">
+                    <div class="log-entry log-info">📋 Console prête. En attente du démarrage...</div>
+                </div>
+
+                <button class="btn btn-danger" onclick="stopProcess()" style="width: 100%; margin-top: 15px;">
+                    ⏹️ Arrêter le Processus
+                </button>
+            </div>
+        </div>
     </div>
-    <p id="errorText" style="color:red; margin-top:8px;"></p>
-  </div>
 
-  <div id="sidebar" style="display:none;">
-    <button id="toggleControlsBtn" onclick="toggleToken()">Afficher le token</button>
-    <input id="token" type="text" placeholder="Token Discord" oninput="connect()"/>
-    <button onclick="loadGuilds()">Serveurs</button>
-    <button onclick="loadDMs()">DMs / Groupes</button>
-    <div class="group">Serveurs</div><ul id="guildList"></ul>
-    <div class="group">DMs & Groupes</div><ul id="dmList"></ul>
-    <div class="group">Salons</div><ul id="channelList"></ul>
-  </div>
+    <!-- Modal: Ajouter un compte -->
+    <div class="modal" id="addAccountModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span class="close-modal" onclick="closeAddAccountModal()">×</span>
+                <h3>Ajouter un Compte Telegram</h3>
+            </div>
 
-  <main id="mainContainer" style="display:none;">
-    <header id="chatHeader"><span id="chatTitle">Aucune conversation</span></header>
-    <section id="chat"></section>
-    <footer id="inputBox">
-      <input id="mentions" type="text" placeholder="Mentions automatiques (@everyone <@id>)" />
-      <textarea id="message" placeholder="Message..."></textarea>
-    </footer>
-  </main>
+            <div class="alert alert-info">
+                📌 Obtenez vos clés API sur <a href="https://my.telegram.org/auth" target="_blank">my.telegram.org/auth</a>
+            </div>
 
-  <script>
-    let token='', currentChannelId=null, socket=null, userId=null;
+            <div class="form-group">
+                <label>Nom du compte (pour identification)</label>
+                <input type="text" id="accountName" placeholder="Ex: Mon compte principal">
+            </div>
 
-    // Vérification mot de passe
-    function checkPassword() {
-      const input=document.getElementById('passwordInput').value.trim();
-      if(input==='uhq'){
-        document.getElementById('authOverlay').style.display='none';
-        document.getElementById('sidebar').style.display='flex';
-        document.getElementById('mainContainer').style.display='flex';
-      } else {
-        document.getElementById('errorText').textContent='Mot de passe incorrect.';
-      }
-    }
+            <div class="form-group">
+                <label>API ID</label>
+                <input type="text" id="apiId" placeholder="123456">
+            </div>
 
-    // Subterfuge bouton token
-    function toggleToken() {
-      const tokenInput=document.getElementById("token");
-      const btn=document.getElementById("toggleControlsBtn");
-      if(tokenInput){
-        tokenInput.remove();
-        btn.textContent="Afficher le token";
-      } else {
-        const newInput=document.createElement("input");
-        newInput.id="token"; newInput.type="text"; newInput.placeholder="Token Discord"; newInput.oninput=connect;
-        newInput.style.marginBottom="6px";
-        btn.insertAdjacentElement("afterend", newInput);
-        btn.textContent="Cacher le token";
-      }
-    }
+            <div class="form-group">
+                <label>API Hash</label>
+                <input type="text" id="apiHash" placeholder="abcdef123456">
+            </div>
 
-    document.getElementById('message').addEventListener('keydown', e=>{
-      if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessageHard();}
-    });
+            <div class="form-group">
+                <label>Numéro de téléphone</label>
+                <input type="text" id="phoneNumber" placeholder="+33612345678">
+            </div>
 
-    async function connect(){
-      const el=document.getElementById('token'); if(!el)return;
-      token=el.value; if(!token)return;
-      const user=await fetch('https://discord.com/api/v9/users/@me',{headers:{Authorization:token}}).then(r=>r.json());
-      userId=user.id;
-      if(socket)socket.close();
-      socket=new WebSocket('wss://gateway.discord.gg/?v=9&encoding=json');
-      socket.onopen=()=>socket.send(JSON.stringify({op:2,d:{token,intents:32767,properties:{os:'linux',browser:'omertacord',device:'omertacord'}}}));
-      socket.onmessage=({data})=>{
-        const p=JSON.parse(data);
-        if(p.t==='MESSAGE_CREATE'){const m=p.d;if(m.channel_id===currentChannelId&&m.author.id!==userId)appendMessage(m.author.username,m.content);}
-      };
-    }
+            <button class="btn btn-primary" onclick="saveAccount()" style="width: 100%;">
+                💾 Enregistrer le Compte
+            </button>
+        </div>
+    </div>
 
-    async function loadGuilds(){
-      const guilds=await fetch('https://discord.com/api/v9/users/@me/guilds',{headers:{Authorization:token}}).then(r=>r.json());
-      const ul=document.getElementById('guildList'); ul.innerHTML=''; document.getElementById('channelList').innerHTML='';
-      guilds.forEach(g=>{const li=document.createElement('li'); li.textContent=g.name; li.onclick=()=>loadChannels(g.id,g.name); ul.appendChild(li);});
-    }
+    <script>
+        // Stockage local des comptes
+        let accounts = JSON.parse(localStorage.getItem('telegramAccounts') || '[]');
+        let selectedSourceAccount = null;
+        let selectedChannel = null;
+        let isProcessRunning = false;
 
-    async function loadChannels(guildId,guildName){
-      const channels=await fetch(`https://discord.com/api/v9/guilds/${guildId}/channels`,{headers:{Authorization:token}}).then(r=>r.json());
-      const ul=document.getElementById('channelList'); ul.innerHTML='';
-      channels.filter(c=>c.type===0).forEach(c=>{const li=document.createElement('li'); li.textContent=`#${c.name}`; li.onclick=()=>openChannel(c.id,`${guildName} / #${c.name}`); ul.appendChild(li);});
-    }
+        // Initialisation
+        document.addEventListener('DOMContentLoaded', () => {
+            renderAccounts();
+            updateTargetAccountSelect();
+        });
 
-    async function loadDMs(){
-      const dms=await fetch('https://discord.com/api/v9/users/@me/channels',{headers:{Authorization:token}}).then(r=>r.json());
-      const ul=document.getElementById('dmList'); ul.innerHTML='';
-      dms.forEach(dm=>{const name=dm.recipients?.map(u=>u.username).join(', ')||dm.name||'Groupe'; const li=document.createElement('li'); li.textContent=name; li.onclick=()=>openChannel(dm.id,name); ul.appendChild(li);});
-    }
+        function openAddAccountModal() {
+            document.getElementById('addAccountModal').classList.add('active');
+        }
 
-    function openChannel(id,label){currentChannelId=id; document.getElementById('chatTitle').textContent=label; loadMessages();}
+        function closeAddAccountModal() {
+            document.getElementById('addAccountModal').classList.remove('active');
+            // Reset form
+            document.getElementById('accountName').value = '';
+            document.getElementById('apiId').value = '';
+            document.getElementById('apiHash').value = '';
+            document.getElementById('phoneNumber').value = '';
+        }
 
-    async function loadMessages(){
-      const msgs=await fetch(`https://discord.com/api/v9/channels/${currentChannelId}/messages?limit=20`,{headers:{Authorization:token}}).then(r=>r.json());
-      const chat=document.getElementById('chat'); chat.innerHTML=''; msgs.reverse().forEach(m=>appendMessage(m.author.username,m.content));
-    }
+        function saveAccount() {
+            const name = document.getElementById('accountName').value.trim();
+            const apiId = document.getElementById('apiId').value.trim();
+            const apiHash = document.getElementById('apiHash').value.trim();
+            const phone = document.getElementById('phoneNumber').value.trim();
 
-    function appendMessage(a,c){const chat=document.getElementById('chat'); const d=document.createElement('div'); d.className='message'; d.innerHTML=`<span class='username'>${a}:</span> ${c}`; chat.appendChild(d); chat.scrollTop=chat.scrollHeight;}
+            if (!name || !apiId || !apiHash || !phone) {
+                alert('⚠️ Veuillez remplir tous les champs !');
+                return;
+            }
 
-    function sendMessageHard(){
-      const message=document.getElementById('message'), mentions=document.getElementById('mentions').value.trim();
-      if(!currentChannelId||!token||!message.value.trim())return;
-      const content=message.value.trim()+(mentions?' '+mentions:''); message.value='';
-      appendMessage('Vous',content);
-      const xhr=new XMLHttpRequest(); xhr.open('POST',`https://discord.com/api/v9/channels/${currentChannelId}/messages`,true);
-      xhr.setRequestHeader('Authorization',token); xhr.setRequestHeader('Content-Type','application/json');
-      xhr.send(JSON.stringify({content}));
-    }
-  </script>
+            const account = {
+                id: Date.now(),
+                name,
+                apiId,
+                apiHash,
+                phone,
+                channels: generateMockChannels() // Simulation
+            };
+
+            accounts.push(account);
+            localStorage.setItem('telegramAccounts', JSON.stringify(accounts));
+            
+            closeAddAccountModal();
+            renderAccounts();
+            updateTargetAccountSelect();
+            
+            addLog('success', `✅ Compte "${name}" ajouté avec succès !`);
+        }
+
+        function generateMockChannels() {
+            // Simulation de canaux pour la démo
+            return [
+                { id: 1, name: 'Crypto Trading FR', members: 1250 },
+                { id: 2, name: 'Marketing Digital', members: 890 },
+                { id: 3, name: 'Développeurs Web', members: 2340 },
+                { id: 4, name: 'Entrepreneurs FR', members: 567 },
+                { id: 5, name: 'E-commerce Pro', members: 1890 }
+            ];
+        }
+
+        function renderAccounts() {
+            const container = document.getElementById('accountsList');
+            
+            if (accounts.length === 0) {
+                container.innerHTML = `
+                    <div style="text-align: center; color: #999; padding: 40px;">
+                        Aucun compte ajouté. Cliquez sur "Ajouter un compte" pour commencer.
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = accounts.map(account => `
+                <div class="account-card ${selectedSourceAccount?.id === account.id ? 'selected' : ''}" 
+                     onclick="selectSourceAccount(${account.id})">
+                    <div class="account-info">
+                        <div class="account-name">📱 ${account.name}</div>
+                        <div class="account-details">${account.phone} • ${account.channels.length} canaux</div>
+                    </div>
+                    <div class="account-actions">
+                        <button class="btn btn-secondary" onclick="event.stopPropagation(); viewChannels(${account.id})">
+                            Voir canaux
+                        </button>
+                        <button class="btn btn-danger" onclick="event.stopPropagation(); deleteAccount(${account.id})">
+                            🗑️
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function selectSourceAccount(accountId) {
+            selectedSourceAccount = accounts.find(a => a.id === accountId);
+            selectedChannel = null;
+            renderAccounts();
+            renderSourceChannels();
+            addLog('info', `📱 Compte source sélectionné: ${selectedSourceAccount.name}`);
+        }
+
+        function renderSourceChannels() {
+            const container = document.getElementById('sourceChannelsList');
+            
+            if (!selectedSourceAccount) {
+                container.innerHTML = '<p style="color: #999;">Sélectionnez un compte pour voir ses canaux...</p>';
+                return;
+            }
+
+            container.innerHTML = selectedSourceAccount.channels.map(channel => `
+                <div class="channel-item ${selectedChannel?.id === channel.id ? 'selected' : ''}"
+                     onclick="selectChannel(${channel.id})">
+                    <strong>📢 ${channel.name}</strong>
+                    <div style="color: #666; font-size: 0.9em; margin-top: 5px;">
+                        👥 ${channel.members} membres
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function selectChannel(channelId) {
+            selectedChannel = selectedSourceAccount.channels.find(c => c.id === channelId);
+            renderSourceChannels();
+            addLog('info', `📢 Canal sélectionné: ${selectedChannel.name} (${selectedChannel.members} membres)`);
+        }
+
+        function updateTargetAccountSelect() {
+            const select = document.getElementById('targetAccount');
+            select.innerHTML = '<option value="">-- Sélectionnez un compte --</option>' +
+                accounts.map(a => `<option value="${a.id}">${a.name}</option>`).join('');
+        }
+
+        function deleteAccount(accountId) {
+            if (!confirm('Êtes-vous sûr de vouloir supprimer ce compte ?')) return;
+            
+            accounts = accounts.filter(a => a.id !== accountId);
+            localStorage.setItem('telegramAccounts', JSON.stringify(accounts));
+            renderAccounts();
+            updateTargetAccountSelect();
+            addLog('warning', '🗑️ Compte supprimé');
+        }
+
+        function viewChannels(accountId) {
+            const account = accounts.find(a => a.id === accountId);
+            alert(`Canaux de ${account.name}:\n\n${account.channels.map(c => `• ${c.name} (${c.members} membres)`).join('\n')}`);
+        }
+
+        async function startProcess() {
+            if (!selectedSourceAccount || !selectedChannel) {
+                alert('⚠️ Veuillez sélectionner un compte source ET un canal !');
+                return;
+            }
+
+            const targetAccountId = document.getElementById('targetAccount').value;
+            if (!targetAccountId) {
+                alert('⚠️ Veuillez sélectionner un compte destinataire !');
+                return;
+            }
+
+            const targetAccount = accounts.find(a => a.id == targetAccountId);
+
+            if (!confirm(`🚀 Démarrer l'ajout ?\n\nSource: ${selectedSourceAccount.name} → ${selectedChannel.name}\nDestinataire: ${targetAccount.name}\nMembres à ajouter: ${selectedChannel.members}`)) {
+                return;
+            }
+
+            isProcessRunning = true;
+            document.getElementById('progressSection').style.display = 'block';
+            document.getElementById('progressSection').scrollIntoView({ behavior: 'smooth' });
+
+            // Configuration
+            const minDelay = parseInt(document.getElementById('minDelay').value) * 1000;
+            const maxDelay = parseInt(document.getElementById('maxDelay').value) * 1000;
+            const batchSize = parseInt(document.getElementById('batchSize').value);
+            const longPause = parseInt(document.getElementById('longPause').value) * 60 * 1000;
+
+            addLog('info', '🚀 Démarrage du processus...');
+            addLog('info', `⚙️ Config: ${minDelay/1000}-${maxDelay/1000}s | Batch: ${batchSize} | Pause: ${longPause/60000}min`);
+
+            const totalMembers = selectedChannel.members;
+            let added = 0;
+            let failed = 0;
+            const startTime = Date.now();
+
+            // Simulation du processus
+            for (let i = 1; i <= totalMembers && isProcessRunning; i++) {
+                const userName = `User_${i}`;
+                const success = Math.random() > 0.1; // 90% de succès
+
+                if (success) {
+                    addLog('success', `✅ [${i}/${totalMembers}] ${userName} ajouté`);
+                    added++;
+                } else {
+                    addLog('error', `❌ [${i}/${totalMembers}] ${userName} - Échec (confidentialité)`);
+                    failed++;
+                }
+
+                // Mise à jour des stats
+                document.getElementById('statAdded').textContent = added;
+                document.getElementById('statFailed').textContent = failed;
+                document.getElementById('statRemaining').textContent = totalMembers - i;
+                
+                const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+                const minutes = Math.floor(elapsedSeconds / 60);
+                const seconds = elapsedSeconds % 60;
+                document.getElementById('statTime').textContent = `${minutes}:${seconds.toString().padStart(2, '0')}`;
+
+                // Progression
+                const progress = Math.floor((i / totalMembers) * 100);
+                document.getElementById('progressFill').style.width = progress + '%';
+                document.getElementById('progressFill').textContent = progress + '%';
+                document.getElementById('progressText').textContent = `${i} / ${totalMembers} membres traités`;
+
+                // Délai aléatoire
+                const delay = Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
+                addLog('warning', `⏳ Pause de ${delay/1000}s...`);
+                await sleep(delay);
+
+                // Pause longue
+                if (i % batchSize === 0 && i < totalMembers) {
+                    addLog('warning', `⏸️ PAUSE LONGUE (${longPause/60000} min) - ${i}/${totalMembers} (${Math.floor(i/totalMembers*100)}%)`);
+                    await sleep(longPause);
+                }
+            }
+
+            if (isProcessRunning) {
+                addLog('success', '🎉 PROCESSUS TERMINÉ !');
+                addLog('info', `📊 Résultats: ${added} ajoutés | ${failed} échecs | ${totalMembers} total`);
+                alert(`✅ Processus terminé !\n\n✓ Ajoutés: ${added}\n✗ Échecs: ${failed}\n📊 Total: ${totalMembers}`);
+            } else {
+                addLog('error', '⏹️ Processus arrêté par l'utilisateur');
+            }
+
+            isProcessRunning = false;
+        }
+
+        function stopProcess() {
+            if (confirm('⚠️ Arrêter le processus en cours ?')) {
+                isProcessRunning = false;
+                addLog('error', '🛑 Arrêt demandé...');
+            }
+        }
+
+        function addLog(type, message) {
+            const logContainer = document.getElementById('logContainer');
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            const timestamp = new Date().toLocaleTimeString();
+            entry.textContent = `[${timestamp}] ${message}`;
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+    </script>
 </body>
 </html>
-
