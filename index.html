@@ -3,756 +3,257 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telegram Contact Manager Proo</title>
+    <title>Phone Manager Pro | Dashboard</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=JetBrains+Mono:wght@500&display=swap');
+
+        :root {
+            --bg: #050505;
+            --surface: #111111;
+            --surface-low: #1a1a1a;
+            --accent: #00ff88;
+            --accent-glow: rgba(0, 255, 136, 0.3);
+            --text-main: #ffffff;
+            --text-dim: #888888;
+            --danger: #ff4444;
+            --border: #222222;
         }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            line-height: 1.6;
+            padding: 2rem;
         }
 
-        .container {
-            max-width: 1200px;
+        /* Layout par Compartiments */
+        .dashboard {
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 2rem;
+            max-width: 1600px;
             margin: 0 auto;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        /* Panneau Latéral (Ajout & Stats) */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+        }
+
+        h2 { font-size: 1.1rem; margin-bottom: 1.2rem; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Formulaire */
+        .input-group { margin-bottom: 1rem; }
+        label { display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 0.5rem; }
+        
+        input {
+            width: 100%;
+            padding: 12px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: white;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        input:focus { outline: none; border-color: var(--accent); }
+
+        .btn-primary {
+            width: 100%;
+            padding: 12px;
+            background: var(--accent);
+            color: black;
+            border: none;
+            border-radius: 8px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 15px var(--accent-glow); }
+
+        /* Main Content Area */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        /* Grille des Opérateurs */
+        .operators-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .op-card {
+            background: var(--surface);
+            border-radius: 12px;
+            border: 1px solid var(--border);
             overflow: hidden;
         }
 
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-
-        .header h1 {
-            font-size: 2em;
-            margin-bottom: 10px;
-        }
-
-        .content {
-            padding: 30px;
-        }
-
-        .section {
-            margin-bottom: 30px;
-            padding: 25px;
-            background: #f8f9fa;
-            border-radius: 15px;
-            border-left: 5px solid #667eea;
-        }
-
-        .section h2 {
-            color: #667eea;
-            margin-bottom: 20px;
-            font-size: 1.5em;
-        }
-
-        .accounts-list {
-            display: grid;
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .account-card {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            border: 2px solid #e0e0e0;
+        .op-header {
+            background: var(--surface-low);
+            padding: 12px 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            transition: all 0.3s;
-            cursor: pointer;
+            border-bottom: 1px solid var(--border);
         }
 
-        .account-card:hover {
-            border-color: #667eea;
-            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
-        }
+        .op-name { font-weight: 800; font-size: 0.9rem; }
+        .op-badge { background: var(--accent); color: black; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; }
 
-        .account-card.selected {
-            border-color: #667eea;
-            background: #f0f4ff;
-        }
-
-        .account-info {
-            flex: 1;
-        }
-
-        .account-name {
-            font-weight: bold;
-            font-size: 1.1em;
-            color: #333;
-            margin-bottom: 5px;
-        }
-
-        .account-details {
-            color: #666;
-            font-size: 0.9em;
-        }
-
-        .account-actions {
+        /* Liste des numéros */
+        .num-item {
             display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            border-bottom: 1px solid var(--border);
+            transition: 0.2s;
+        }
+
+        .num-item:hover { background: rgba(255,255,255,0.02); }
+
+        .num-val { font-family: 'JetBrains Mono'; font-size: 0.95rem; }
+
+        .actions { display: flex; gap: 8px; }
+        .btn-circle {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: 1px solid var(--border);
+            background: transparent;
+            color: var(--text-dim);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-check:hover { border-color: var(--accent); color: var(--accent); }
+        .btn-del:hover { border-color: var(--danger); color: var(--danger); }
+
+        /* Section Archivés / Corbeille */
+        .archive-section {
+            margin-top: 2rem;
+            opacity: 0.7;
+            border-top: 2px dashed var(--border);
+            padding-top: 2rem;
+        }
+
+        .archived-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
             gap: 10px;
         }
 
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s;
-            font-size: 0.95em;
-        }
-
-        .btn-primary {
-            background: #667eea;
-            color: white;
-        }
-
-        .btn-primary:hover {
-            background: #5568d3;
-            transform: translateY(-2px);
-        }
-
-        .btn-danger {
-            background: #dc3545;
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #c82333;
-        }
-
-        .btn-success {
-            background: #28a745;
-            color: white;
-        }
-
-        .btn-success:hover {
-            background: #218838;
-        }
-
-        .form-group {
-            margin-bottom: 20px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-            color: #333;
-        }
-
-        .form-group input, .form-group select {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 8px;
-            font-size: 1em;
-            transition: border 0.3s;
-        }
-
-        .form-group input:focus, .form-group select:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.6);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .modal.active {
+        .num-archived {
+            background: var(--surface-low);
+            padding: 8px 12px;
+            border-radius: 6px;
             display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            text-decoration: line-through;
+            color: var(--text-dim);
         }
 
-        .modal-content {
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            max-width: 500px;
-            width: 90%;
-        }
-
-        .close-modal {
-            float: right;
-            font-size: 1.5em;
-            cursor: pointer;
-            color: #999;
-        }
-
-        .close-modal:hover {
-            color: #333;
-        }
-
-        .alert {
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-
-        .alert-info {
-            background: #d1ecf1;
-            color: #0c5460;
-            border-left: 4px solid #17a2b8;
-        }
-
-        .alert-warning {
-            background: #fff3cd;
-            color: #856404;
-            border-left: 4px solid #ffc107;
-        }
-
-        .channel-item {
-            padding: 15px;
-            background: white;
-            border-radius: 8px;
-            margin-bottom: 10px;
-            border: 2px solid #e0e0e0;
-            cursor: pointer;
-            transition: all 0.3s;
-        }
-
-        .channel-item:hover {
-            border-color: #667eea;
-            box-shadow: 0 3px 10px rgba(102, 126, 234, 0.2);
-        }
-
-        .channel-item.selected {
-            border-color: #667eea;
-            background: #f0f4ff;
-        }
-
-        .settings-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 20px;
-        }
-
-        .progress-container {
-            background: #f0f0f0;
-            border-radius: 10px;
-            padding: 20px;
-            margin: 20px 0;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 30px;
-            background: #e0e0e0;
-            border-radius: 15px;
-            overflow: hidden;
-            margin-bottom: 15px;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-            transition: width 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-            width: 0%;
-        }
-
-        .log-container {
-            background: #1e1e1e;
-            color: #0f0;
-            padding: 20px;
-            border-radius: 10px;
-            max-height: 300px;
-            overflow-y: auto;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9em;
-        }
-
-        .log-entry {
-            margin-bottom: 5px;
-            padding: 5px;
-        }
-
-        .log-success { color: #0f0; }
-        .log-error { color: #f00; }
-        .log-warning { color: #ff0; }
-        .log-info { color: #0ff; }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-        }
-
-        .stat-card {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            border: 2px solid #e0e0e0;
-        }
-
-        .stat-number {
-            font-size: 2em;
-            font-weight: bold;
-            color: #667eea;
-        }
-
-        .stat-label {
-            color: #666;
-            margin-top: 5px;
-        }
-
-        .empty-state {
-            text-align: center;
-            color: #999;
-            padding: 40px;
-        }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🚀 Telegram Contact Manager Pro</h1>
-            <p>Gestionnaire multi-comptes ultra-sécurisé</p>
-        </div>
 
-        <div class="content">
-            <!-- Section 1: Gestion des comptes -->
-            <div class="section">
-                <h2>📱 Mes Comptes Telegram</h2>
-                <div class="accounts-list" id="accountsList"></div>
-                <button class="btn btn-primary" onclick="openAddAccountModal()">➕ Ajouter un compte</button>
+    <div class="dashboard">
+        <div class="sidebar">
+            <div class="card">
+                <h2>⚡ Ajouter</h2>
+                <form id="addForm">
+                    <div class="input-group">
+                        <label>Numéro de téléphone</label>
+                        <input type="text" id="phoneInput" placeholder="06 00 00 00 00" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Opérateur détecté</label>
+                        <input type="text" id="opInput" readonly placeholder="..." style="color: var(--accent)">
+                    </div>
+                    <button type="submit" class="btn-primary">ENREGISTRER</button>
+                </form>
             </div>
 
-            <!-- Section 2: Sélection du canal source -->
-            <div class="section">
-                <h2>📂 Choisir le Canal Source</h2>
-                <div class="alert alert-info">
-                    ℹ️ Sélectionnez d'abord un compte ci-dessus, puis choisissez le canal dont vous voulez extraire les contacts.
+            <div class="card">
+                <h2>📊 Statistiques</h2>
+                <div id="stats" style="font-size: 0.9rem; color: var(--text-dim);">
+                    Chargement...
                 </div>
-                <div id="sourceChannelsList"></div>
-            </div>
-
-            <!-- Section 3: Configuration -->
-            <div class="section">
-                <h2>⚙️ Configuration de l'Ajout</h2>
-                
-                <div class="form-group">
-                    <label>Compte destinataire (qui va recevoir les contacts)</label>
-                    <select id="targetAccount">
-                        <option value="">-- Sélectionnez un compte --</option>
-                    </select>
-                </div>
-
-                <div class="settings-grid">
-                    <div class="form-group">
-                        <label>Délai minimum (secondes)</label>
-                        <input type="number" id="minDelay" value="45" min="30">
-                    </div>
-                    <div class="form-group">
-                        <label>Délai maximum (secondes)</label>
-                        <input type="number" id="maxDelay" value="90" min="45">
-                    </div>
-                    <div class="form-group">
-                        <label>Batch size</label>
-                        <input type="number" id="batchSize" value="20" min="10" max="50">
-                    </div>
-                    <div class="form-group">
-                        <label>Pause longue (minutes)</label>
-                        <input type="number" id="longPause" value="5" min="3" max="15">
-                    </div>
-                </div>
-
-                <div class="alert alert-warning">
-                    ⚠️ <strong>Mode sécurisé activé :</strong> Les paramètres sont optimisés pour éviter les bans.
-                </div>
-
-                <button class="btn btn-success" onclick="startProcess()" style="width: 100%; padding: 15px; font-size: 1.1em;">
-                    🚀 Démarrer l'Ajout de Contacts
-                </button>
-            </div>
-
-            <!-- Section 4: Progression -->
-            <div class="section" id="progressSection" style="display: none;">
-                <h2>📊 Progression en Temps Réel</h2>
-                
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-number" id="statAdded">0</div>
-                        <div class="stat-label">Ajoutés</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number" id="statFailed">0</div>
-                        <div class="stat-label">Échecs</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number" id="statRemaining">0</div>
-                        <div class="stat-label">Restants</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-number" id="statTime">0:00</div>
-                        <div class="stat-label">Temps écoulé</div>
-                    </div>
-                </div>
-
-                <div class="progress-container">
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="progressFill">0%</div>
-                    </div>
-                    <p style="text-align: center; color: #666;" id="progressText">En attente...</p>
-                </div>
-
-                <div class="log-container" id="logContainer"></div>
-
-                <button class="btn btn-danger" onclick="stopProcess()" style="width: 100%; margin-top: 15px;">
-                    ⏹️ Arrêter le Processus
+                <button onclick="exportJSON()" class="btn-primary" style="margin-top:1rem; background: transparent; border: 1px solid var(--accent); color: var(--accent);">
+                    EXPORTER JSON
                 </button>
             </div>
         </div>
-    </div>
 
-    <!-- Modal: Ajouter un compte -->
-    <div class="modal" id="addAccountModal">
-        <div class="modal-content">
-            <div style="margin-bottom: 20px;">
-                <span class="close-modal" onclick="closeAddAccountModal()">×</span>
-                <h3 style="color: #667eea; font-size: 1.5em;">Ajouter un Compte Telegram</h3>
+        <div class="main-content">
+            <div id="activeOperators" class="operators-grid">
+                </div>
+
+            <div class="archive-section">
+                <h2>📁 Archive (Utilisés / Supprimés)</h2>
+                <div id="archiveList" class="archived-list">
+                    </div>
             </div>
-
-            <div class="alert alert-info">
-                📌 Obtenez vos clés API sur <a href="https://my.telegram.org/auth" target="_blank" style="color: #0c5460; font-weight: bold;">my.telegram.org/auth</a>
-            </div>
-
-            <div class="form-group">
-                <label>Nom du compte (pour identification)</label>
-                <input type="text" id="accountName" placeholder="Ex: Mon compte principal">
-            </div>
-
-            <div class="form-group">
-                <label>API ID</label>
-                <input type="text" id="apiId" placeholder="123456">
-            </div>
-
-            <div class="form-group">
-                <label>API Hash</label>
-                <input type="text" id="apiHash" placeholder="abcdef123456">
-            </div>
-
-            <div class="form-group">
-                <label>Numéro de téléphone</label>
-                <input type="text" id="phoneNumber" placeholder="+33612345678">
-            </div>
-
-            <button class="btn btn-primary" onclick="saveAccount()" style="width: 100%;">
-                💾 Enregistrer le Compte
-            </button>
         </div>
     </div>
 
     <script>
-        // État global
-        const state = {
-            accounts: [],
-            selectedSourceAccount: null,
-            selectedChannel: null,
-            isProcessRunning: false
+        // Simulation de la base de données JSON
+        let db = {
+            active: {}, // { "Orange": [{id, num}, ...], "SFR": [] }
+            archived: [] // [{id, num, operator, reason}]
         };
 
-        // Initialisation
-        function init() {
-            loadAccounts();
-            renderAll();
-            addLog('info', '✅ Application initialisée');
+        // --- LOGIQUE INITIALISATION ---
+        window.onload = () => {
+            const saved = localStorage.getItem('phone_db');
+            if(saved) db = JSON.parse(saved);
+            render();
+        };
+
+        function save() {
+            localStorage.setItem('phone_db', JSON.stringify(db));
+            render();
         }
 
-        function loadAccounts() {
-            try {
-                const stored = localStorage.getItem('telegramAccounts');
-                state.accounts = stored ? JSON.parse(stored) : [];
-            } catch (e) {
-                console.error('Erreur chargement:', e);
-                state.accounts = [];
-            }
-        }
-
-        function saveAccounts() {
-            try {
-                localStorage.setItem('telegramAccounts', JSON.stringify(state.accounts));
-            } catch (e) {
-                console.error('Erreur sauvegarde:', e);
-                alert('Erreur lors de la sauvegarde');
-            }
-        }
-
-        function renderAll() {
-            renderAccounts();
-            renderSourceChannels();
-            updateTargetAccountSelect();
-        }
-
-        function renderAccounts() {
-            const container = document.getElementById('accountsList');
+        // --- LOGIQUE DÉTECTION OPÉRATEUR (SIMULATION API) ---
+        document.getElementById('phoneInput').addEventListener('input', (e) => {
+            const val = e.target.value.replace(/\s/g, '');
+            const opField = document.getElementById('opInput');
             
-            if (state.accounts.length === 0) {
-                container.innerHTML = '<div class="empty-state">Aucun compte ajouté. Cliquez sur "Ajouter un compte" pour commencer.</div>';
-                return;
-            }
+            if(val.length >= 2) {
+                const prefix = val.substring(0, 3);
+                let operator = "Autre";
 
-            container.innerHTML = state.accounts.map((account, index) => `
-                <div class="account-card ${state.selectedSourceAccount?.id === account.id ? 'selected' : ''}" 
-                     onclick="selectSourceAccount(${index})">
-                    <div class="account-info">
-                        <div class="account-name">📱 ${account.name}</div>
-                        <div class="account-details">${account.phone} • ${account.channels.length} canaux</div>
-                    </div>
-                    <div class="account-actions">
-                        <button class="btn btn-danger" onclick="event.stopPropagation(); deleteAccount(${index})">
-                            🗑️ Supprimer
-                        </button>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function renderSourceChannels() {
-            const container = document.getElementById('sourceChannelsList');
-            
-            if (!state.selectedSourceAccount) {
-                container.innerHTML = '<p class="empty-state" style="padding: 20px;">Sélectionnez un compte pour voir ses canaux...</p>';
-                return;
-            }
-
-            const channels = state.selectedSourceAccount.channels;
-            container.innerHTML = channels.map((channel, index) => `
-                <div class="channel-item ${state.selectedChannel?.id === channel.id ? 'selected' : ''}"
-                     onclick="selectChannel(${index})">
-                    <strong>📢 ${channel.name}</strong>
-                    <div style="color: #666; font-size: 0.9em; margin-top: 5px;">
-                        👥 ${channel.members} membres
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function updateTargetAccountSelect() {
-            const select = document.getElementById('targetAccount');
-            select.innerHTML = '<option value="">-- Sélectionnez un compte --</option>' +
-                state.accounts.map((a, i) => `<option value="${i}">${a.name}</option>`).join('');
-        }
-
-        function generateMockChannels() {
-            const names = ['Crypto Trading FR', 'Marketing Digital', 'Développeurs Web', 'Entrepreneurs FR', 'E-commerce Pro', 'Business Online', 'Investisseurs'];
-            return names.map((name, i) => ({
-                id: Date.now() + i,
-                name: name,
-                members: Math.floor(Math.random() * 2000) + 500
-            }));
-        }
-
-        function openAddAccountModal() {
-            document.getElementById('addAccountModal').classList.add('active');
-        }
-
-        function closeAddAccountModal() {
-            document.getElementById('addAccountModal').classList.remove('active');
-            document.getElementById('accountName').value = '';
-            document.getElementById('apiId').value = '';
-            document.getElementById('apiHash').value = '';
-            document.getElementById('phoneNumber').value = '';
-        }
-
-        function saveAccount() {
-            const name = document.getElementById('accountName').value.trim();
-            const apiId = document.getElementById('apiId').value.trim();
-            const apiHash = document.getElementById('apiHash').value.trim();
-            const phone = document.getElementById('phoneNumber').value.trim();
-
-            if (!name || !apiId || !apiHash || !phone) {
-                alert('⚠️ Veuillez remplir tous les champs !');
-                return;
-            }
-
-            const account = {
-                id: Date.now(),
-                name,
-                apiId,
-                apiHash,
-                phone,
-                channels: generateMockChannels()
-            };
-
-            state.accounts.push(account);
-            saveAccounts();
-            closeAddAccountModal();
-            renderAll();
-            addLog('success', `✅ Compte "${name}" ajouté avec succès !`);
-        }
-
-        function selectSourceAccount(index) {
-            state.selectedSourceAccount = state.accounts[index];
-            state.selectedChannel = null;
-            renderAll();
-            addLog('info', `📱 Compte source sélectionné: ${state.selectedSourceAccount.name}`);
-        }
-
-        function selectChannel(index) {
-            state.selectedChannel = state.selectedSourceAccount.channels[index];
-            renderSourceChannels();
-            addLog('info', `📢 Canal sélectionné: ${state.selectedChannel.name} (${state.selectedChannel.members} membres)`);
-        }
-
-        function deleteAccount(index) {
-            if (!confirm('Êtes-vous sûr de vouloir supprimer ce compte ?')) return;
-            
-            const accountName = state.accounts[index].name;
-            state.accounts.splice(index, 1);
-            
-            if (state.selectedSourceAccount?.name === accountName) {
-                state.selectedSourceAccount = null;
-                state.selectedChannel = null;
-            }
-            
-            saveAccounts();
-            renderAll();
-            addLog('warning', `🗑️ Compte "${accountName}" supprimé`);
-        }
-
-        async function startProcess() {
-            if (!state.selectedSourceAccount || !state.selectedChannel) {
-                alert('⚠️ Veuillez sélectionner un compte source ET un canal !');
-                return;
-            }
-
-            const targetIndex = document.getElementById('targetAccount').value;
-            if (!targetIndex) {
-                alert('⚠️ Veuillez sélectionner un compte destinataire !');
-                return;
-            }
-
-            const targetAccount = state.accounts[targetIndex];
-            const totalMembers = state.selectedChannel.members;
-
-            if (!confirm(`🚀 Démarrer l'ajout ?\n\nSource: ${state.selectedSourceAccount.name} → ${state.selectedChannel.name}\nDestinataire: ${targetAccount.name}\nMembres: ${totalMembers}`)) {
-                return;
-            }
-
-            state.isProcessRunning = true;
-            document.getElementById('progressSection').style.display = 'block';
-            document.getElementById('progressSection').scrollIntoView({ behavior: 'smooth' });
-
-            const minDelay = parseInt(document.getElementById('minDelay').value) * 1000;
-            const maxDelay = parseInt(document.getElementById('maxDelay').value) * 1000;
-            const batchSize = parseInt(document.getElementById('batchSize').value);
-            const longPause = parseInt(document.getElementById('longPause').value) * 60 * 1000;
-
-            addLog('info', '🚀 Démarrage du processus...');
-            addLog('info', `⚙️ Config: ${minDelay/1000}-${maxDelay/1000}s délai | Batch: ${batchSize}`);
-
-            let added = 0;
-            let failed = 0;
-            const startTime = Date.now();
-
-            for (let i = 1; i <= totalMembers && state.isProcessRunning; i++) {
-                const userName = `User_${Math.floor(Math.random() * 10000)}`;
-                const success = Math.random() > 0.15;
-
-                if (success) {
-                    addLog('success', `✅ [${i}/${totalMembers}] ${userName} ajouté`);
-                    added++;
-                } else {
-                    addLog('error', `❌ [${i}/${totalMembers}] ${userName} échec`);
-                    failed++;
+                // Logique simplifiée des préfixes français
+                if (prefix.startsWith('06') || prefix.startsWith('07')) {
+                    const digit = val[2];
+                    if(['1','2','3'].includes(digit)) operator = "Orange";
+                    else if(['6','7','8'].includes(digit)) operator = "SFR";
+                    else if(['0','4','5'].includes(digit)) operator = "Bouygues";
+                    else if(['9'].includes(digit)) operator = "Free";
                 }
-
-                updateStats(added, failed, totalMembers - i, startTime);
-                updateProgress(i, totalMembers);
-
-                if (i < totalMembers) {
-                    const delay = Math.floor(Math.random() * (maxDelay - minDelay + 1)) + minDelay;
-                    addLog('warning', `⏳ Pause ${(delay/1000).toFixed(1)}s...`);
-                    await sleep(delay);
-                }
-
-                if (i % batchSize === 0 && i < totalMembers) {
-                    addLog('warning', `⏸️ PAUSE LONGUE ${longPause/60000}min - ${i}/${totalMembers}`);
-                    await sleep(longPause);
-                }
+                opField.value = operator;
             }
-
-            if (state.isProcessRunning) {
-                addLog('success', `🎉 TERMINÉ ! Ajoutés: ${added} | Échecs: ${failed}`);
-                alert(`✅ Processus terminé !\n\n✓ Ajoutés: ${added}\n✗ Échecs: ${failed}\n📊 Total: ${totalMembers}`);
-            }
-
-            state.isProcessRunning = false;
-        }
-
-        function stopProcess() {
-            if (confirm('⚠️ Arrêter le processus ?')) {
-                state.isProcessRunning = false;
-                addLog('error', '🛑 Arrêt en cours...');
-            }
-        }
-
-        function updateStats(added, failed, remaining, startTime) {
-            document.getElementById('statAdded').textContent = added;
-            document.getElementById('statFailed').textContent = failed;
-            document.getElementById('statRemaining').textContent = remaining;
-            
-            const elapsed = Math.floor((Date.now() - startTime) / 1000);
-            const min = Math.floor(elapsed / 60);
-            const sec = elapsed % 60;
-            document.getElementById('statTime').textContent = `${min}:${sec.toString().padStart(2, '0')}`;
-        }
-
-        function updateProgress(current, total) {
-            const percent = Math.floor((current / total) * 100);
-            const fill = document.getElementById('progressFill');
-            fill.style.width = percent + '%';
-            fill.textContent = percent + '%';
-            document.getElementById('progressText').textContent = `${current} / ${total} membres traités`;
-        }
-
-        function addLog(type, message) {
-            const container = document.getElementById('logContainer');
-            const entry = document.createElement('div');
-            entry.className = `log-entry log-${type}`;
-            const time = new Date().toLocaleTimeString();
-            entry.textContent = `[${time}] ${message}`;
-            container.appendChild(entry);
-            container.scrollTop = container.scrollHeight;
-        }
-
-        function sleep(ms) {
-            return new Promise(resolve => setTimeout(resolve, ms));
-        }
-
-        // Lancement au chargement
-        window.addEventListener('DOMContentLoaded', init);
-    </script>
-</body>
-</html>
-
+        });
