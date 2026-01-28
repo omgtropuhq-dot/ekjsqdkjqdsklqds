@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phone Manager Pro | Dashboard</title>
+    <title>Phone Manager Pro | Intelligent Storage</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=JetBrains+Mono:wght@500&display=swap');
 
@@ -25,24 +25,15 @@
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: var(--bg);
             color: var(--text-main);
-            line-height: 1.6;
             padding: 2rem;
         }
 
-        /* Layout par Compartiments */
         .dashboard {
             display: grid;
             grid-template-columns: 350px 1fr;
             gap: 2rem;
-            max-width: 1600px;
+            max-width: 1400px;
             margin: 0 auto;
-        }
-
-        /* Panneau Latéral (Ajout & Stats) */
-        .sidebar {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
         }
 
         .card {
@@ -50,14 +41,11 @@
             border: 1px solid var(--border);
             border-radius: 16px;
             padding: 1.5rem;
+            margin-bottom: 1.5rem;
         }
 
-        h2 { font-size: 1.1rem; margin-bottom: 1.2rem; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
+        h2 { font-size: 0.9rem; margin-bottom: 1.2rem; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
 
-        /* Formulaire */
-        .input-group { margin-bottom: 1rem; }
-        label { display: block; font-size: 0.8rem; color: var(--text-dim); margin-bottom: 0.5rem; }
-        
         input {
             width: 100%;
             padding: 12px;
@@ -66,6 +54,7 @@
             border-radius: 8px;
             color: white;
             font-family: 'JetBrains Mono', monospace;
+            margin-bottom: 1rem;
         }
 
         input:focus { outline: none; border-color: var(--accent); }
@@ -82,19 +71,9 @@
             transition: 0.3s;
         }
 
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 15px var(--accent-glow); }
-
-        /* Main Content Area */
-        .main-content {
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
-        }
-
-        /* Grille des Opérateurs */
         .operators-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 1.5rem;
         }
 
@@ -107,153 +86,193 @@
 
         .op-header {
             background: var(--surface-low);
-            padding: 12px 15px;
+            padding: 10px 15px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid var(--border);
         }
 
-        .op-name { font-weight: 800; font-size: 0.9rem; }
-        .op-badge { background: var(--accent); color: black; padding: 2px 8px; border-radius: 4px; font-size: 0.7rem; font-weight: bold; }
-
-        /* Liste des numéros */
         .num-item {
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            padding: 12px 15px;
+            padding: 10px 15px;
             border-bottom: 1px solid var(--border);
-            transition: 0.2s;
+            font-family: 'JetBrains Mono';
+            font-size: 0.9rem;
         }
 
-        .num-item:hover { background: rgba(255,255,255,0.02); }
-
-        .num-val { font-family: 'JetBrains Mono'; font-size: 0.95rem; }
-
-        .actions { display: flex; gap: 8px; }
-        .btn-circle {
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
+        .btn-action {
+            background: none;
             border: 1px solid var(--border);
-            background: transparent;
             color: var(--text-dim);
+            border-radius: 4px;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            padding: 2px 6px;
         }
 
-        .btn-check:hover { border-color: var(--accent); color: var(--accent); }
-        .btn-del:hover { border-color: var(--danger); color: var(--danger); }
+        .btn-action:hover { color: var(--accent); border-color: var(--accent); }
 
-        /* Section Archivés / Corbeille */
         .archive-section {
-            margin-top: 2rem;
-            opacity: 0.7;
-            border-top: 2px dashed var(--border);
-            padding-top: 2rem;
+            margin-top: 3rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
         }
 
         .archived-list {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            display: flex;
+            flex-wrap: wrap;
             gap: 10px;
         }
 
-        .num-archived {
+        .badge-archived {
             background: var(--surface-low);
-            padding: 8px 12px;
-            border-radius: 6px;
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.8rem;
-            text-decoration: line-through;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.75rem;
             color: var(--text-dim);
+            text-decoration: line-through;
         }
-
-        .hidden { display: none; }
     </style>
 </head>
 <body>
 
     <div class="dashboard">
-        <div class="sidebar">
+        <aside>
             <div class="card">
-                <h2>⚡ Ajouter</h2>
+                <h2>➕ Nouveau Numéro</h2>
                 <form id="addForm">
-                    <div class="input-group">
-                        <label>Numéro de téléphone</label>
-                        <input type="text" id="phoneInput" placeholder="06 00 00 00 00" required>
-                    </div>
-                    <div class="input-group">
-                        <label>Opérateur détecté</label>
-                        <input type="text" id="opInput" readonly placeholder="..." style="color: var(--accent)">
-                    </div>
-                    <button type="submit" class="btn-primary">ENREGISTRER</button>
+                    <input type="text" id="phoneInput" placeholder="+33 6 12..." required>
+                    <input type="text" id="opDisplay" placeholder="Opérateur" readonly style="color:var(--accent)">
+                    <button type="submit" class="btn-primary">AJOUTER</button>
                 </form>
             </div>
-
-            <div class="card">
-                <h2>📊 Statistiques</h2>
-                <div id="stats" style="font-size: 0.9rem; color: var(--text-dim);">
-                    Chargement...
-                </div>
-                <button onclick="exportJSON()" class="btn-primary" style="margin-top:1rem; background: transparent; border: 1px solid var(--accent); color: var(--accent);">
-                    EXPORTER JSON
-                </button>
+            
+            <div id="statsCard" class="card">
+                <h2>📊 Stats</h2>
+                <div id="statsContent" style="font-size: 0.85rem; color: var(--text-dim)"></div>
             </div>
-        </div>
+        </aside>
 
-        <div class="main-content">
-            <div id="activeOperators" class="operators-grid">
-                </div>
+        <main>
+            <div id="operatorsGrid" class="operators-grid"></div>
 
             <div class="archive-section">
-                <h2>📁 Archive (Utilisés / Supprimés)</h2>
-                <div id="archiveList" class="archived-list">
-                    </div>
+                <h2>📁 Corbeille / Utilisés</h2>
+                <div id="archiveList" class="archived-list"></div>
             </div>
-        </div>
+        </main>
     </div>
 
     <script>
-        // Simulation de la base de données JSON
-        let db = {
-            active: {}, // { "Orange": [{id, num}, ...], "SFR": [] }
-            archived: [] // [{id, num, operator, reason}]
-        };
+        // --- GESTION DU STOCKAGE (AUTO-CREATION) ---
+        // Cette fonction vérifie si la "base" existe, sinon elle la crée vide.
+        function getDatabase() {
+            const data = localStorage.getItem('phone_manager_db');
+            if (!data) {
+                // Initialisation du fichier de stockage s'il n'existe pas
+                const initialDB = { active: {}, archived: [] };
+                localStorage.setItem('phone_manager_db', JSON.stringify(initialDB));
+                return initialDB;
+            }
+            return JSON.parse(data);
+        }
 
-        // --- LOGIQUE INITIALISATION ---
-        window.onload = () => {
-            const saved = localStorage.getItem('phone_db');
-            if(saved) db = JSON.parse(saved);
-            render();
-        };
-
-        function save() {
-            localStorage.setItem('phone_db', JSON.stringify(db));
+        function saveDatabase(db) {
+            localStorage.setItem('phone_manager_db', JSON.stringify(db));
             render();
         }
 
-        // --- LOGIQUE DÉTECTION OPÉRATEUR (SIMULATION API) ---
-        document.getElementById('phoneInput').addEventListener('input', (e) => {
-            const val = e.target.value.replace(/\s/g, '');
-            const opField = document.getElementById('opInput');
-            
-            if(val.length >= 2) {
-                const prefix = val.substring(0, 3);
-                let operator = "Autre";
+        // --- NETTOYAGE & DÉTECTION ---
+        function cleanNumber(val) {
+            let n = val.replace(/[^\d+]/g, '');
+            if (n.startsWith('+33')) n = '0' + n.substring(3);
+            return n;
+        }
 
-                // Logique simplifiée des préfixes français
-                if (prefix.startsWith('06') || prefix.startsWith('07')) {
-                    const digit = val[2];
-                    if(['1','2','3'].includes(digit)) operator = "Orange";
-                    else if(['6','7','8'].includes(digit)) operator = "SFR";
-                    else if(['0','4','5'].includes(digit)) operator = "Bouygues";
-                    else if(['9'].includes(digit)) operator = "Free";
-                }
-                opField.value = operator;
+        function detectOperator(n) {
+            const clean = cleanNumber(n);
+            if (clean.length < 3) return "";
+            const prefix = clean.substring(0, 3);
+            if (prefix.startsWith('06') || prefix.startsWith('07')) {
+                const d = clean[2];
+                if (['1','2','3'].includes(d)) return "Orange";
+                if (['6','7','8'].includes(d)) return "SFR";
+                if (['0','4','5'].includes(d)) return "Bouygues";
+                if (['9'].includes(d)) return "Free";
             }
+            return "Autre";
+        }
+
+        // --- ACTIONS ---
+        document.getElementById('phoneInput').addEventListener('input', (e) => {
+            document.getElementById('opDisplay').value = detectOperator(e.target.value);
         });
+
+        document.getElementById('addForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const db = getDatabase();
+            const raw = document.getElementById('phoneInput').value;
+            const clean = cleanNumber(raw);
+            const op = detectOperator(raw) || "Autre";
+
+            // Vérification des doublons
+            const allActive = Object.values(db.active).flat().map(x => x.number);
+            if (allActive.includes(clean)) {
+                alert("Ce numéro existe déjà !");
+                return;
+            }
+
+            if (!db.active[op]) db.active[op] = [];
+            db.active[op].push({ id: Date.now(), number: clean });
+            
+            saveDatabase(db);
+            e.target.reset();
+        });
+
+        function moveToArchive(op, id) {
+            const db = getDatabase();
+            const idx = db.active[op].findIndex(n => n.id === id);
+            const item = db.active[op].splice(idx, 1)[0];
+            
+            db.archived.push({ ...item, op: op });
+            if (db.active[op].length === 0) delete db.active[op];
+            
+            saveDatabase(db);
+        }
+
+        // --- RENDU ---
+        function render() {
+            const db = getDatabase();
+            const grid = document.getElementById('operatorsGrid');
+            const archive = document.getElementById('archiveList');
+            const stats = document.getElementById('statsContent');
+
+            grid.innerHTML = '';
+            archive.innerHTML = '';
+
+            let total = 0;
+            Object.keys(db.active).forEach(op => {
+                let html = `<div class="op-card"><div class="op-header"><b>${op}</b> <span>${db.active[op].length}</span></div>`;
+                db.active[op].forEach(n => {
+                    total++;
+                    html += `
+                        <div class="num-item">
+                            ${n.number}
+                            <button class="btn-action" onclick="moveToArchive('${op}', ${n.id})">✓</button>
+                        </div>`;
+                });
+                grid.innerHTML += html + `</div>`;
+            });
+
+            db.archived.forEach(n => {
+                archive.innerHTML += `<div class="badge-archived">${n.number} (${n.op})</div>`;
+            });
+
+            stats.innerHTML = `Numéros actifs : ${total} <br> Utilisés : ${db.archived.length}`;
+        }
+
+        // Démarrage
+        render();
+    </script>
+</body>
+</html>
