@@ -2,277 +2,150 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Phone Manager Pro | Intelligent Storage</title>
+    <title>Phone Manager PRO - AbstractAPI</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&family=JetBrains+Mono:wght@500&display=swap');
-
         :root {
-            --bg: #050505;
-            --surface: #111111;
-            --surface-low: #1a1a1a;
-            --accent: #00ff88;
-            --accent-glow: rgba(0, 255, 136, 0.3);
-            --text-main: #ffffff;
-            --text-dim: #888888;
-            --danger: #ff4444;
-            --border: #222222;
+            --bg: #050505; --card: #0f0f0f; --accent: #ff006e; --border: #1f1f1f; --text: #fff;
         }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); padding: 25px; margin: 0; }
+        .dashboard { display: grid; grid-template-columns: 380px 1fr; gap: 25px; max-width: 1600px; margin: 0 auto; }
+        
+        /* Panneau de Contrôle */
+        .sidebar { background: var(--card); border: 1px solid var(--border); border-radius: 15px; padding: 20px; height: 90vh; position: sticky; top: 20px; }
+        h2 { font-size: 1.2rem; color: var(--accent); margin-bottom: 20px; }
+        
+        textarea { width: 100%; height: 350px; background: #000; border: 1px solid var(--border); color: #00ff88; border-radius: 8px; padding: 10px; font-family: monospace; margin-bottom: 15px; resize: none; }
+        .btn-run { width: 100%; padding: 15px; background: var(--accent); color: #fff; border: none; font-weight: bold; border-radius: 8px; cursor: pointer; text-transform: uppercase; }
+        .progress { font-size: 12px; margin-top: 10px; color: #666; }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        /* Grille des Compartiments */
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .op-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+        .op-header { background: #151515; padding: 12px; font-weight: bold; display: flex; justify-content: space-between; border-bottom: 1px solid var(--border); }
+        
+        .num-item { padding: 10px 15px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #111; font-family: monospace; }
+        .check-used { width: 18px; height: 18px; cursor: pointer; accent-color: var(--accent); }
 
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: var(--bg);
-            color: var(--text-main);
-            padding: 2rem;
-        }
-
-        .dashboard {
-            display: grid;
-            grid-template-columns: 350px 1fr;
-            gap: 2rem;
-            max-width: 1400px;
-            margin: 0 auto;
-        }
-
-        .card {
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: 16px;
-            padding: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        h2 { font-size: 0.9rem; margin-bottom: 1.2rem; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
-
-        input {
-            width: 100%;
-            padding: 12px;
-            background: var(--bg);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: white;
-            font-family: 'JetBrains Mono', monospace;
-            margin-bottom: 1rem;
-        }
-
-        input:focus { outline: none; border-color: var(--accent); }
-
-        .btn-primary {
-            width: 100%;
-            padding: 12px;
-            background: var(--accent);
-            color: black;
-            border: none;
-            border-radius: 8px;
-            font-weight: 800;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        .operators-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .op-card {
-            background: var(--surface);
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            overflow: hidden;
-        }
-
-        .op-header {
-            background: var(--surface-low);
-            padding: 10px 15px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .num-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px 15px;
-            border-bottom: 1px solid var(--border);
-            font-family: 'JetBrains Mono';
-            font-size: 0.9rem;
-        }
-
-        .btn-action {
-            background: none;
-            border: 1px solid var(--border);
-            color: var(--text-dim);
-            border-radius: 4px;
-            cursor: pointer;
-            padding: 2px 6px;
-        }
-
-        .btn-action:hover { color: var(--accent); border-color: var(--accent); }
-
-        .archive-section {
-            margin-top: 3rem;
-            padding-top: 1rem;
-            border-top: 1px solid var(--border);
-        }
-
-        .archived-list {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .badge-archived {
-            background: var(--surface-low);
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 0.75rem;
-            color: var(--text-dim);
-            text-decoration: line-through;
-        }
+        /* Archive */
+        .archive-section { margin-top: 40px; border-top: 2px dashed #1a1a1a; padding-top: 20px; opacity: 0.5; }
+        .archived-num { display: inline-block; background: #111; padding: 3px 8px; border-radius: 4px; font-size: 11px; margin: 3px; color: #444; text-decoration: line-through; }
     </style>
 </head>
 <body>
 
-    <div class="dashboard">
-        <aside>
-            <div class="card">
-                <h2>➕ Nouveau Numéro</h2>
-                <form id="addForm">
-                    <input type="text" id="phoneInput" placeholder="+33 6 12..." required>
-                    <input type="text" id="opDisplay" placeholder="Opérateur" readonly style="color:var(--accent)">
-                    <button type="submit" class="btn-primary">AJOUTER</button>
-                </form>
+<div class="dashboard">
+    <aside class="sidebar">
+        <h2>Import de Masse</h2>
+        <div style="font-size: 11px; color: #555; margin-bottom: 10px;">API : AbstractAPI (Lookup 10k+)</div>
+        
+        <textarea id="massInput" placeholder="Colle ta liste ici..."></textarea>
+        
+        <div id="status" class="progress">Attente...</div>
+        <button class="btn-run" onclick="startAPIProcess()">Lancer la vérification</button>
+        
+        <button class="btn-run" style="margin-top:10px; background:transparent; border:1px solid #333;" onclick="downloadJSON()">Télécharger JSON</button>
+    </aside>
+
+    <main>
+        <div id="opGrid" class="grid">
             </div>
-            
-            <div id="statsCard" class="card">
-                <h2>📊 Stats</h2>
-                <div id="statsContent" style="font-size: 0.85rem; color: var(--text-dim)"></div>
-            </div>
-        </aside>
 
-        <main>
-            <div id="operatorsGrid" class="operators-grid"></div>
+        <div class="archive-section">
+            <h3>📁 COMPARTIMENT ARCHIVE (DÉJÀ UTILISÉS)</h3>
+            <div id="archiveList"></div>
+        </div>
+    </main>
+</div>
 
-            <div class="archive-section">
-                <h2>📁 Corbeille / Utilisés</h2>
-                <div id="archiveList" class="archived-list"></div>
-            </div>
-        </main>
-    </div>
+<script>
+    const API_KEY = '8de8de90e9a3458e9112c4c7daf3eb5b';
+    let db = JSON.parse(localStorage.getItem('phone_db_v3')) || { active: {}, archived: [] };
 
-    <script>
-        // --- GESTION DU STOCKAGE (AUTO-CREATION) ---
-        // Cette fonction vérifie si la "base" existe, sinon elle la crée vide.
-        function getDatabase() {
-            const data = localStorage.getItem('phone_manager_db');
-            if (!data) {
-                // Initialisation du fichier de stockage s'il n'existe pas
-                const initialDB = { active: {}, archived: [] };
-                localStorage.setItem('phone_manager_db', JSON.stringify(initialDB));
-                return initialDB;
-            }
-            return JSON.parse(data);
+    async function startAPIProcess() {
+        const input = document.getElementById('massInput');
+        const status = document.getElementById('status');
+        const lines = input.value.split('\n').filter(l => l.trim().length >= 10);
+        
+        input.value = ""; // Vider pour libérer la mémoire
+
+        for (let i = 0; i < lines.length; i++) {
+            const phone = lines[i].trim();
+            status.innerText = `Traitement: ${i+1}/${lines.length}...`;
+
+            try {
+                const response = await fetch(`https://phonevalidation.abstractapi.com/v1/?api_key=${API_KEY}&number=${phone}`);
+                const data = await response.json();
+
+                if (data.valid) {
+                    const carrier = data.carrier || "Inconnu";
+                    if (!db.active[carrier]) db.active[carrier] = [];
+                    
+                    // Doublon check
+                    if (!db.active[carrier].some(x => x.num === data.format.international)) {
+                        db.active[carrier].push({
+                            id: Date.now() + i,
+                            num: data.format.international,
+                            type: data.type
+                        });
+                    }
+                }
+            } catch (e) { console.error("Erreur API"); }
+
+            // Délai pour ne pas être banni (Rate Limit)
+            await new Promise(r => setTimeout(r, 150));
+            if (i % 5 === 0) render(); // Update visuel régulier
         }
+        
+        status.innerText = "Terminé !";
+        save();
+    }
 
-        function saveDatabase(db) {
-            localStorage.setItem('phone_manager_db', JSON.stringify(db));
-            render();
-        }
+    function moveToArchive(op, id) {
+        const idx = db.active[op].findIndex(n => n.id === id);
+        const item = db.active[op].splice(idx, 1)[0];
+        
+        db.archived.push({ ...item, op: op });
+        if (db.active[op].length === 0) delete db.active[op];
+        save();
+    }
 
-        // --- NETTOYAGE & DÉTECTION ---
-        function cleanNumber(val) {
-            let n = val.replace(/[^\d+]/g, '');
-            if (n.startsWith('+33')) n = '0' + n.substring(3);
-            return n;
-        }
-
-        function detectOperator(n) {
-            const clean = cleanNumber(n);
-            if (clean.length < 3) return "";
-            const prefix = clean.substring(0, 3);
-            if (prefix.startsWith('06') || prefix.startsWith('07')) {
-                const d = clean[2];
-                if (['1','2','3'].includes(d)) return "Orange";
-                if (['6','7','8'].includes(d)) return "SFR";
-                if (['0','4','5'].includes(d)) return "Bouygues";
-                if (['9'].includes(d)) return "Free";
-            }
-            return "Autre";
-        }
-
-        // --- ACTIONS ---
-        document.getElementById('phoneInput').addEventListener('input', (e) => {
-            document.getElementById('opDisplay').value = detectOperator(e.target.value);
-        });
-
-        document.getElementById('addForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            const db = getDatabase();
-            const raw = document.getElementById('phoneInput').value;
-            const clean = cleanNumber(raw);
-            const op = detectOperator(raw) || "Autre";
-
-            // Vérification des doublons
-            const allActive = Object.values(db.active).flat().map(x => x.number);
-            if (allActive.includes(clean)) {
-                alert("Ce numéro existe déjà !");
-                return;
-            }
-
-            if (!db.active[op]) db.active[op] = [];
-            db.active[op].push({ id: Date.now(), number: clean });
-            
-            saveDatabase(db);
-            e.target.reset();
-        });
-
-        function moveToArchive(op, id) {
-            const db = getDatabase();
-            const idx = db.active[op].findIndex(n => n.id === id);
-            const item = db.active[op].splice(idx, 1)[0];
-            
-            db.archived.push({ ...item, op: op });
-            if (db.active[op].length === 0) delete db.active[op];
-            
-            saveDatabase(db);
-        }
-
-        // --- RENDU ---
-        function render() {
-            const db = getDatabase();
-            const grid = document.getElementById('operatorsGrid');
-            const archive = document.getElementById('archiveList');
-            const stats = document.getElementById('statsContent');
-
-            grid.innerHTML = '';
-            archive.innerHTML = '';
-
-            let total = 0;
-            Object.keys(db.active).forEach(op => {
-                let html = `<div class="op-card"><div class="op-header"><b>${op}</b> <span>${db.active[op].length}</span></div>`;
-                db.active[op].forEach(n => {
-                    total++;
-                    html += `
-                        <div class="num-item">
-                            ${n.number}
-                            <button class="btn-action" onclick="moveToArchive('${op}', ${n.id})">✓</button>
-                        </div>`;
-                });
-                grid.innerHTML += html + `</div>`;
-            });
-
-            db.archived.forEach(n => {
-                archive.innerHTML += `<div class="badge-archived">${n.number} (${n.op})</div>`;
-            });
-
-            stats.innerHTML = `Numéros actifs : ${total} <br> Utilisés : ${db.archived.length}`;
-        }
-
-        // Démarrage
+    function save() {
+        localStorage.setItem('phone_db_v3', JSON.stringify(db));
         render();
-    </script>
+    }
+
+    function downloadJSON() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(db, null, 2));
+        const dlAnchor = document.createElement('a');
+        dlAnchor.setAttribute("href", dataStr);
+        dlAnchor.setAttribute("download", "database_numeros.json");
+        dlAnchor.click();
+    }
+
+    function render() {
+        const grid = document.getElementById('opGrid');
+        const arch = document.getElementById('archiveList');
+        grid.innerHTML = '';
+        arch.innerHTML = '';
+
+        Object.keys(db.active).forEach(op => {
+            let card = `<div class="op-card"><div class="op-header">${op} <span>${db.active[op].length}</span></div>`;
+            db.active[op].forEach(n => {
+                card += `
+                    <div class="num-item">
+                        <span>${n.num}</span>
+                        <input type="checkbox" class="check-used" onchange="moveToArchive('${op}', ${n.id})">
+                    </div>`;
+            });
+            grid.innerHTML += card + `</div>`;
+        });
+
+        db.archived.forEach(n => {
+            arch.innerHTML += `<span class="archived-num">${n.num}</span>`;
+        });
+    }
+
+    render();
+</script>
 </body>
 </html>
