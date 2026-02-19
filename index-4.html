@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SMTP Checker</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: monospace; background: #0d0d0d; color: #ccc; font-size: 12px; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+.topbar { display: flex; align-items: center; gap: 10px; padding: 7px 12px; background: #111; border-bottom: 1px solid #1e1e1e; flex-shrink: 0; flex-wrap: wrap; }
+.topbar h1 { color: #0f0; font-size: 13px; letter-spacing: 1px; }
+.topbar input { background: #1a1a1a; border: 1px solid #2a2a2a; color: #ccc; padding: 4px 8px; font-family: monospace; font-size: 11px; border-radius: 2px; outline: none; }
+.topbar input:focus { border-color: #0f0; }
+#urlInp { width: 200px; }
+.be-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.be-dot.on { background: #0f0; box-shadow: 0 0 5px #0f0; }
+.be-dot.off { background: #f33; }
+.be-dot.chk { background: #fa0; animation: blink .7s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
+.spacer { flex: 1; }
+.tgrow { display: flex; align-items: center; gap: 6px; font-size: 10px; color: #555; }
+.tgrow input { width: 140px; }
+.tgrow input.chatinp { width: 110px; }
+button { font-family: monospace; font-size: 11px; cursor: pointer; border-radius: 2px; padding: 4px 10px; border: 1px solid #333; background: #161616; color: #999; }
+button:hover { border-color: #666; color: #fff; }
+button.go   { border-color: #0f0; color: #0f0; background: #091509; }
+button.go:hover { background: #0e250e; }
+button.stop { border-color: #f33; color: #f33; background: #150909; }
+button.tgbtn { border-color: #229ED9; color: #229ED9; }
+.main { display: flex; flex: 1; overflow: hidden; }
+.panel { display: flex; flex-direction: column; flex: 1; border-right: 1px solid #1a1a1a; overflow: hidden; min-width: 0; }
+.panel:last-child { border-right: none; }
+.phead { padding: 6px 10px; background: #111; border-bottom: 1px solid #1a1a1a; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+.ptitle { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #444; }
+.pbadge { font-size: 9px; padding: 1px 6px; border-radius: 10px; }
+.ba { background: #120f00; color: #ff9900; border: 1px solid #2a1e00; }
+.bs { background: #090918; color: #7ab0ff; border: 1px solid #151530; }
+.pright { margin-left: auto; display: flex; gap: 6px; }
+.pbody { display: flex; flex-direction: column; flex: 1; overflow: hidden; padding: 8px; gap: 6px; }
+textarea { width: 100%; background: #0f0f0f; border: 1px solid #1a1a1a; color: #bbb; font-family: monospace; font-size: 11px; padding: 7px; resize: none; outline: none; flex: 1; line-height: 1.7; border-radius: 2px; }
+textarea:focus { border-color: #2a2a2a; }
+textarea::placeholder { color: #252525; }
+.terow { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.terow label { color: #333; font-size: 10px; white-space: nowrap; }
+.terow input { flex: 1; background: #0f0f0f; border: 1px solid #1a1a1a; color: #bbb; padding: 4px 7px; font-family: monospace; font-size: 11px; outline: none; border-radius: 2px; }
+.terow input:focus { border-color: #333; }
+.stats { display: flex; gap: 6px; flex-shrink: 0; }
+.stat { padding: 2px 7px; background: #0f0f0f; border: 1px solid #1a1a1a; font-size: 10px; border-radius: 2px; }
+.stat b { font-size: 12px; }
+.stat.sv b { color: #0f0; } .stat.si b { color: #f33; } .stat.sp b { color: #fa0; }
+progress { width: 100%; height: 3px; flex-shrink: 0; accent-color: #0f0; }
+.pctrl { display: flex; gap: 6px; align-items: center; flex-shrink: 0; }
+.thrrow { display: flex; align-items: center; gap: 5px; margin-left: auto; font-size: 10px; color: #444; }
+.thrrow input[type=range] { width: 65px; accent-color: #0f0; }
+.thrrow b { color: #0f0; min-width: 16px; }
+.out { flex: 1; overflow-y: auto; background: #090909; border: 1px solid #151515; border-radius: 2px; padding: 4px 6px; line-height: 1.8; font-size: 11px; }
+.out::-webkit-scrollbar { width: 3px; }
+.out::-webkit-scrollbar-thumb { background: #222; }
+.rv { color: #0f0; } .ri { color: #2a2a2a; } .rt { color: #fa0; } .rp { color: #1e1e1e; }
+.bge { font-size: 9px; padding: 0 4px; border-radius: 2px; margin-right: 3px; vertical-align: middle; }
+.b-aws { background:#120f00; color:#ff9900; }
+.b-sg  { background:#09091a; color:#7ab0ff; }
+.b-br  { background:#09091a; color:#0092ff; }
+.b-gm  { background:#150909; color:#ea4335; }
+.b-ms  { background:#09091a; color:#00a4ef; }
+.b-gen { background:#151515; color:#555; }
+.hits { width: 240px; min-width: 180px; border-left: 1px solid #1a1a1a; display: flex; flex-direction: column; overflow: hidden; }
+.hhead { padding: 6px 10px; background: #111; border-bottom: 1px solid #1a1a1a; display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.htitle { font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: #444; }
+.hcount { color: #0f0; font-size: 11px; font-weight: bold; }
+.hfile  { color: #222; font-size: 9px; }
+.hbody { flex: 1; overflow-y: auto; padding: 5px 7px; font-size: 10px; line-height: 1.9; }
+.hbody::-webkit-scrollbar { width: 3px; }
+.hbody::-webkit-scrollbar-thumb { background: #1a1a1a; }
+.hline { color: #0a0; border-bottom: 1px solid #0f0f0f; padding: 1px 0; word-break: break-all; }
+.hempty { color: #1e1e1e; padding: 20px; text-align: center; }
+.hfoot { padding: 6px 8px; border-top: 1px solid #1a1a1a; display: flex; gap: 5px; }
+.hfoot button { flex: 1; font-size: 10px; padding: 4px 6px; }
+.hfoot .clrbtn { border-color: #2a0a0a; color: #633; }
+.hfoot .clrbtn:hover { border-color: #f33; color: #f33; }
+@media(max-width:650px){
+  .main { flex-direction: column; }
+  .hits { width:100%; min-width:unset; border-left:none; border-top:1px solid #1a1a1a; max-height:180px; }
+  .tgrow input { width:100px; }
+  .tgrow input.chatinp { width:80px; }
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <h1>⚡ SMTP</h1>
+  <div class="be-dot chk" id="beDot"></div>
+  <span style="font-size:10px;color:#444" id="beLabel">...</span>
+  <input id="urlInp" value="https://python-7--omgtropuhq.replit.app" onchange="checkBE()" placeholder="Backend URL">
+  <div class="spacer"></div>
+  <div class="tgrow">
+    TG:
+    <input id="tok"  placeholder="Bot Token" type="password">
+    <input id="chat" placeholder="Chat ID" class="chatinp">
+    <button class="tgbtn" onclick="saveCfg()">✈</button>
+    <span id="tgst" style="color:#333">—</span>
+  </div>
+</div>
+
+<div class="main">
+
+  <!-- API KEYS -->
+
+  <div class="panel">
+    <div class="phead">
+      <span class="ptitle">API Keys</span>
+      <span class="pbadge ba">AWS · SendGrid · Brevo</span>
+      <div class="pright">
+        <button class="go" id="btnA" onclick="togglePanel('api')">▶ Check</button>
+      </div>
+    </div>
+    <div class="pbody">
+      <textarea id="inpA" placeholder="— AWS —&#10;AKIAUM7EROJD2B5R5UET|BHzMzP/XeHIl...&#10;&#10;— SendGrid —&#10;SG.ob-LytKzT5CZGLK...&#10;&#10;— Brevo —&#10;xkeysib-abc123...&#10;user@domain.com|xkeysib-abc123..."></textarea>
+      <div class="terow"><label>✉ Test:</label><input id="teA" placeholder="email@test.com (optionnel)"></div>
+      <div class="stats">
+        <div class="stat">Total <b id="aT">0</b></div>
+        <div class="stat sv">Valid <b id="aV">0</b></div>
+        <div class="stat si">Fail <b id="aI">0</b></div>
+        <div class="stat sp">Run <b id="aP">0</b></div>
+        <span style="margin-left:auto;font-size:10px;color:#333" id="aPct">0%</span>
+      </div>
+      <progress id="pgA" value="0" max="100"></progress>
+      <div class="pctrl">
+        <button onclick="exp('api','valid')">↓ Valid</button>
+        <button onclick="exp('api','all')">↓ Tous</button>
+        <button onclick="clr('api')">✕</button>
+        <div class="thrrow">T:<input type="range" id="thrA" min="1" max="10" value="3" oninput="document.getElementById('tvA').textContent=this.value"><b id="tvA">3</b></div>
+      </div>
+      <div class="out" id="outA"><span style="color:#1e1e1e">En attente...</span></div>
+    </div>
+  </div>
+
+  <!-- SMTP -->
+
+  <div class="panel">
+    <div class="phead">
+      <span class="ptitle">SMTP</span>
+      <span class="pbadge bs">host:port · user · pass</span>
+      <div class="pright">
+        <button class="go" id="btnS" onclick="togglePanel('smtp')">▶ Check</button>
+      </div>
+    </div>
+    <div class="pbody">
+      <textarea id="inpS" placeholder="smtp.gmail.com:587|user@gmail.com|password&#10;smtp.office365.com:587|user@corp.com|pass&#10;email-smtp.us-east-1.amazonaws.com:587|AKIA...|secret&#10;smtp.sendgrid.net:587|apikey|SG.xxx&#10;smtp-relay.brevo.com:587|email@domain.com|key"></textarea>
+      <div class="terow"><label>✉ Test:</label><input id="teS" placeholder="email@test.com (optionnel)"></div>
+      <div class="stats">
+        <div class="stat">Total <b id="sT">0</b></div>
+        <div class="stat sv">Valid <b id="sV">0</b></div>
+        <div class="stat si">Fail <b id="sI">0</b></div>
+        <div class="stat sp">Run <b id="sP">0</b></div>
+        <span style="margin-left:auto;font-size:10px;color:#333" id="sPct">0%</span>
+      </div>
+      <progress id="pgS" value="0" max="100"></progress>
+      <div class="pctrl">
+        <button onclick="exp('smtp','valid')">↓ Valid</button>
+        <button onclick="exp('smtp','all')">↓ Tous</button>
+        <button onclick="clr('smtp')">✕</button>
+        <div class="thrrow">T:<input type="range" id="thrS" min="1" max="20" value="5" oninput="document.getElementById('tvS').textContent=this.value"><b id="tvS">5</b></div>
+      </div>
+      <div class="out" id="outS"><span style="color:#1e1e1e">En attente...</span></div>
+    </div>
+  </div>
+
+  <!-- HITS -->
+
+  <div class="hits">
+    <div class="hhead">
+      <span class="htitle">Hits</span>
+      <span class="hcount" id="hc">0</span>
+      <span class="hfile">hits.txt</span>
+    </div>
+    <div class="hbody" id="hb"><div class="hempty">Aucun hit</div></div>
+    <div class="hfoot">
+      <button onclick="loadHits()">↻</button>
+      <button onclick="dlHits()">↓</button>
+      <button class="clrbtn" onclick="clearHits()">✕</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const ST = {
+  api:  { r:[], running:false, stop:false },
+  smtp: { r:[], running:false, stop:false }
+};
+const ID = {
+  api:  { inp:'inpA',btn:'btnA',out:'outA',thr:'thrA',tv:'tvA',te:'teA',T:'aT',V:'aV',I:'aI',P:'aP',Pct:'aPct',pg:'pgA' },
+  smtp: { inp:'inpS',btn:'btnS',out:'outS',thr:'thrS',tv:'tvS',te:'teS',T:'sT',V:'sV',I:'sI',P:'sP',Pct:'sPct',pg:'pgS' }
+};
+const BE = () => document.getElementById('urlInp').value.replace(/\/$/,'');
+let hitsRaw = '';
+
+// BE check
+async function checkBE() {
+  const dot=document.getElementById('beDot'), lbl=document.getElementById('beLabel');
+  dot.className='be-dot chk'; lbl.textContent='...';
+  try {
+    const d = await (await fetch(`${BE()}/health`,{signal:AbortSignal.timeout(3000)})).json();
+    dot.className='be-dot on'; lbl.textContent=`online${d.telegram?' · TG✓':''}`;
+  } catch { dot.className='be-dot off'; lbl.textContent='offline'; }
+}
+
+// Config
+async function loadConfig() {
+  try {
+    const d = await (await fetch(`${BE()}/tg_get`,{signal:AbortSignal.timeout(3000)})).json();
+    if (d.token) {
+      document.getElementById('tok').value=d.token;
+      document.getElementById('chat').value=d.chat;
+      if (d.test_email) { document.getElementById('teA').value=d.test_email; document.getElementById('teS').value=d.test_email; }
+      const el=document.getElementById('tgst'); el.textContent='✓'; el.style.color='#0f0';
+    }
+  } catch {}
+}
+
+async function saveCfg() {
+  const tok=document.getElementById('tok').value.trim(), chat=document.getElementById('chat').value.trim();
+  const el=document.getElementById('tgst');
+  if (!tok||!chat){el.textContent='⚠';el.style.color='#fa0';return;}
+  try {
+    await fetch(`${BE()}/tg_config?token=${encodeURIComponent(tok)}&chat=${encodeURIComponent(chat)}`,{signal:AbortSignal.timeout(5000)});
+    el.textContent='✓'; el.style.color='#0f0';
+  } catch { el.textContent='✗'; el.style.color='#f33'; }
+}
+
+// Parse
+function parseAPI(line) {
+  line=line.trim(); if(!line||line[0]==='#') return null;
+  const p=line.split('|');
+  if((p[0].startsWith('AKIA')||p[0].startsWith('ASIA'))&&p.length>=2)
+    return mk(line,'email-smtp.us-east-1.amazonaws.com',587,p[0].trim(),p.slice(1).join('|').trim());
+  if(p.length===1&&p[0].startsWith('SG.'))
+    return mk(line,'smtp.sendgrid.net',587,'apikey',p[0].trim());
+  if(p.length>=2&&p[p.length-1].startsWith('SG.'))
+    return mk(line,'smtp.sendgrid.net',587,p[0].trim(),p[p.length-1].trim());
+  if(p.length===1&&(p[0].startsWith('xkeysib-')||/^[a-zA-Z0-9_-]{32,}$/.test(p[0])))
+    return mk(line,'smtp-relay.brevo.com',587,'',p[0].trim());
+  if(p.length===2&&(p[1].startsWith('xkeysib-')||/^[a-zA-Z0-9_-]{32,}$/.test(p[1])))
+    return mk(line,'smtp-relay.brevo.com',587,p[0].trim(),p[1].trim());
+  return null;
+}
+
+function parseSMTP(line) {
+  line=line.trim(); if(!line||line[0]==='#') return null;
+  const p=line.split('|'); if(p.length<3) return null;
+  const hp=p[0].trim(), ci=hp.lastIndexOf(':');
+  if(ci===-1) return null;
+  const host=hp.slice(0,ci), port=parseInt(hp.slice(ci+1));
+  if(!host||isNaN(port)) return null;
+  return mk(line,host,port,p[1].trim(),p.slice(2).join('|').trim());
+}
+
+function mk(raw,host,port,user,pass){return{raw,host,port,user,pass,status:'pending',msg:'',ms:0,tg:false,mail:false,provider:''};}
+
+// Badge
+function bg(prov){
+  const m={'AWS SES':['AWS','b-aws'],'SendGrid':['SG','b-sg'],'Brevo':['BR','b-br'],'Gmail':['GM','b-gm'],'Microsoft':['MS','b-ms']};
+  const[l,c]=m[prov]||[prov?prov.slice(0,4):'?','b-gen'];
+  return `<span class="bge ${c}">${l}</span>`;
+}
+
+// Check
+async function checkOne(panel, idx) {
+  const s=ST[panel], r=s.r[idx], id=ID[panel];
+  r.status='testing'; render1(panel,idx); updSt(panel);
+  try {
+    const te=document.getElementById(id.te).value.trim();
+    const d=await (await fetch(`${BE()}/check`,{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({host:r.host,port:r.port,user:r.user,pass:r.pass,test_email:te}),
+      signal:AbortSignal.timeout(30000)
+    })).json();
+    r.status=d.status==='valid'?'valid':'invalid';
+    r.msg=d.message||''; r.ms=d.ms||0; r.tg=d.telegram_sent||false; r.mail=d.mail_sent||false; r.provider=d.provider||'';
+    if(r.status==='valid') setTimeout(loadHits,600);
+  } catch(e){ r.status='invalid'; r.msg='BE:'+e.message.slice(0,40); }
+  render1(panel,idx); updSt(panel);
+}
+
+async function togglePanel(panel){
+  const s=ST[panel], id=ID[panel];
+  if(s.running){s.stop=true;return;}
+  const fn=panel==='api'?parseAPI:parseSMTP;
+  s.r=document.getElementById(id.inp).value.split('\n').map(fn).filter(Boolean);
+  if(!s.r.length){alert('Aucun credential valide.');return;}
+  s.running=true; s.stop=false;
+  const btn=document.getElementById(id.btn);
+  btn.textContent='⏹ Stop'; btn.className='stop';
+  renderAll(panel); updSt(panel);
+  const thr=parseInt(document.getElementById(id.thr).value);
+  const q=s.r.map((_,i)=>i);
+  async function w(){while(q.length>0&&!s.stop){const i=q.shift();if(i===undefined)break;await checkOne(panel,i);}}
+  await Promise.all(Array.from({length:thr},()=>w()));
+  s.running=false; s.stop=false;
+  btn.textContent='▶ Check'; btn.className='go';
+}
+
+// Render
+function lh(r,i,panel){
+  const icon=r.status==='valid'?'✓':r.status==='invalid'?'✗':r.status==='testing'?'…':'·';
+  const cls=r.status==='valid'?'rv':r.status==='invalid'?'ri':r.status==='testing'?'rt':'rp';
+  const ms=r.ms?` [${r.ms}ms]`:'';
+  const extras=(r.tg?' ✈':'')+(r.mail?' ✉':'');
+  const msg=r.msg?` — ${r.msg.slice(0,100)}`:'';
+  const prov=r.provider?bg(r.provider):'';
+  const cred=(r.user||r.pass.slice(0,10)).slice(0,20);
+  return `<div id="r-${panel}-${i}" class="${cls}">${icon} ${prov}${cred}${ms}${extras}${msg}</div>`;
+}
+function renderAll(panel){
+  const s=ST[panel];
+  document.getElementById(ID[panel].out).innerHTML=s.r.length?s.r.map((r,i)=>lh(r,i,panel)).join(''):'<span style="color:#1e1e1e">En attente...</span>';
+}
+function render1(panel,i){
+  const el=document.getElementById(`r-${panel}-${i}`);
+  const html=lh(ST[panel].r[i],i,panel);
+  if(el) el.outerHTML=html; else renderAll(panel);
+}
+function updSt(panel){
+  const s=ST[panel], id=ID[panel];
+  const v=s.r.filter(r=>r.status==='valid').length;
+  const inv=s.r.filter(r=>r.status==='invalid').length;
+  const p=s.r.filter(r=>r.status==='testing'||r.status==='pending').length;
+  const pct=s.r.length?Math.round((v+inv)/s.r.length*100):0;
+  document.getElementById(id.T).textContent=s.r.length;
+  document.getElementById(id.V).textContent=v;
+  document.getElementById(id.I).textContent=inv;
+  document.getElementById(id.P).textContent=p;
+  document.getElementById(id.Pct).textContent=pct+'%';
+  document.getElementById(id.pg).value=pct;
+}
+
+// Export / Clear
+function exp(panel,type){
+  const rows=type==='valid'?ST[panel].r.filter(r=>r.status==='valid'):ST[panel].r;
+  if(!rows.length){alert('Vide.');return;}
+  dl(rows.map(r=>`${r.host}:${r.port}|${r.user}|${r.pass}|${r.status}|${r.provider||''}|${r.msg}`).join('\n'),`${panel}_${type}.txt`);
+}
+function clr(panel){ST[panel].r=[];renderAll(panel);updSt(panel);}
+
+// Hits
+async function loadHits(){
+  try {
+    const d=await (await fetch(`${BE()}/hits`,{signal:AbortSignal.timeout(5000)})).json();
+    hitsRaw=d.hits||'';
+    document.getElementById('hc').textContent=d.count||0;
+    const b=document.getElementById('hb');
+    if(!hitsRaw.trim()){b.innerHTML='<div class="hempty">Aucun hit</div>';return;}
+    b.innerHTML=hitsRaw.trim().split('\n').reverse().map(l=>`<div class="hline">${esc(l)}</div>`).join('');
+  } catch {}
+}
+async function clearHits(){
+  if(!confirm('Effacer hits.txt ?')) return;
+  try{await fetch(`${BE()}/hits/clear`,{signal:AbortSignal.timeout(3000)});hitsRaw='';document.getElementById('hc').textContent='0';document.getElementById('hb').innerHTML='<div class="hempty">Aucun hit</div>';}catch{}
+}
+function dlHits(){if(!hitsRaw.trim()){alert('Vide.');return;}dl(hitsRaw,`hits_${Date.now()}.txt`);}
+
+// Utils
+function dl(txt,name){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain'}));a.download=name;a.click();}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+document.addEventListener('keydown',e=>{if(e.ctrlKey&&e.key==='Enter'){if(!ST.api.running)togglePanel('api');if(!ST.smtp.running)togglePanel('smtp');}});
+window.addEventListener('load',()=>{checkBE();loadConfig();loadHits();setInterval(checkBE,10000);setInterval(loadHits,5000);});
+</script>
+
+</body>
+</html>
